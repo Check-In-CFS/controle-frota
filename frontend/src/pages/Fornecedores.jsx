@@ -1,12 +1,16 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Search, Plus, Pencil, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
+import FornecedorModal from '../components/FornecedorModal'
 
 export default function Fornecedores() {
   const [fornecedores, setFornecedores] = useState([])
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
+
+  const [modalAberto, setModalAberto] = useState(false)
+  const [editando, setEditando] = useState(null)
 
   const carregar = useCallback(async () => {
     setCarregando(true)
@@ -26,11 +30,40 @@ export default function Fornecedores() {
     return () => clearTimeout(timer)
   }, [carregar])
 
+  function abrirNovo() {
+    setEditando(null)
+    setModalAberto(true)
+  }
+
+  function abrirEdicao(fornecedor) {
+    setEditando(fornecedor)
+    setModalAberto(true)
+  }
+
+  async function salvar(payload) {
+    if (editando) {
+      await api.patch(`/fornecedores/${editando.id}`, payload)
+    } else {
+      await api.post('/fornecedores', payload)
+    }
+    setModalAberto(false)
+    carregar()
+  }
+
+  async function excluir(fornecedor) {
+    if (!confirm(`Excluir o fornecedor ${fornecedor.nome}?`)) return
+    await api.delete(`/fornecedores/${fornecedor.id}`)
+    carregar()
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Fornecedores</h1>
-        <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark opacity-60 cursor-not-allowed" title="Formulário de criação: próximo passo">
+        <button
+          onClick={abrirNovo}
+          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark"
+        >
           <Plus size={16} /> Novo Fornecedor
         </button>
       </div>
@@ -74,14 +107,26 @@ export default function Fornecedores() {
                 <td className="px-4 py-3">{f.email || '—'}</td>
                 <td className="px-4 py-3">{f.contato || '—'}</td>
                 <td className="px-4 py-3 text-right">
-                  <button className="text-gray-400 hover:text-primary mr-3"><Pencil size={16} /></button>
-                  <button className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button>
+                  <button onClick={() => abrirEdicao(f)} className="text-gray-400 hover:text-primary mr-3">
+                    <Pencil size={16} />
+                  </button>
+                  <button onClick={() => excluir(f)} className="text-gray-400 hover:text-red-600">
+                    <Trash2 size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {modalAberto && (
+        <FornecedorModal
+          fornecedor={editando}
+          onClose={() => setModalAberto(false)}
+          onSave={salvar}
+        />
+      )}
     </div>
   )
 }
