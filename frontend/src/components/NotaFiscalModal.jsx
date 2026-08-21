@@ -9,6 +9,7 @@ const VAZIO = {
   data_emissao: new Date().toISOString().slice(0, 10),
   tipo: 'peca',
   valor_total: '',
+  observacoes: '',
   maquina_ids: [],
 }
 
@@ -161,6 +162,16 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, onClose,
             </div>
             <p className="text-xs text-gray-400 mt-1">Deixe em branco se a nota não for de peça/serviço vinculado a máquina específica.</p>
           </div>
+
+          <Campo label="Observações">
+            <textarea
+              rows={3}
+              value={form.observacoes}
+              onChange={(e) => atualizarCampo('observacoes', e.target.value)}
+              placeholder="Detalhes adicionais sobre esta nota..."
+              className="input"
+            />
+          </Campo>
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">

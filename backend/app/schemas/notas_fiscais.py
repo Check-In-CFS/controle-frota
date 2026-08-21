@@ -19,6 +19,7 @@ class NotaFiscalBase(BaseModel):
     tipo: TipoNota
     valor_total: float
     arquivo_url: Optional[str] = None
+    observacoes: Optional[str] = None
 
 
 class NotaFiscalCreate(NotaFiscalBase):
@@ -33,6 +34,7 @@ class NotaFiscalUpdate(BaseModel):
     tipo: Optional[TipoNota] = None
     valor_total: Optional[float] = None
     arquivo_url: Optional[str] = None
+    observacoes: Optional[str] = None
     maquina_ids: Optional[list[int]] = None
 
 
