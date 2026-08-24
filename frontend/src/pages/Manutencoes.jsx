@@ -18,6 +18,7 @@ import {
 import ManutencaoModal from '../components/ManutencaoModal'
 import PreventivaModal from '../components/PreventivaModal'
 import ConcluirPreventivaModal from '../components/ConcluirPreventivaModal'
+import { useAuth } from '../services/auth'
 
 const BADGE_STATUS_PREVENTIVA = {
   vencida: 'bg-red-100 text-red-700',
@@ -69,6 +70,7 @@ function AbaBotao({ label, ativa, onClick }) {
 // ==================== ABA MANUTENÇÕES ====================
 
 function AbaManutencoes({ maquinas, fornecedores }) {
+  const { isAdmin } = useAuth()
   const [manutencoes, setManutencoes] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [maquinaId, setMaquinaId] = useState('')
@@ -145,9 +147,11 @@ function AbaManutencoes({ maquinas, fornecedores }) {
                   <button onClick={() => { setEditando(m); setModalAberto(true) }} className="text-gray-400 hover:text-primary mr-3">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </Td>
               </tr>
             ))}
@@ -171,6 +175,7 @@ function AbaManutencoes({ maquinas, fornecedores }) {
 // ==================== ABA PREVENTIVAS ====================
 
 function AbaPreventivas({ maquinas, fornecedores }) {
+  const { isAdmin } = useAuth()
   const [preventivas, setPreventivas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [maquinaId, setMaquinaId] = useState('')
@@ -253,9 +258,11 @@ function AbaPreventivas({ maquinas, fornecedores }) {
                   <button onClick={() => setConcluindo(p)} className="text-gray-400 hover:text-green-600 mr-3" title="Concluir">
                     <CheckCircle2 size={16} />
                   </button>
-                  <button onClick={() => excluir(p)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => excluir(p)} className="text-gray-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </Td>
               </tr>
             ))}

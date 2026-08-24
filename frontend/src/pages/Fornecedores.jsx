@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { Search, Plus, Pencil, Trash2 } from 'lucide-react'
 import { api } from '../services/api'
 import FornecedorModal from '../components/FornecedorModal'
+import { useAuth } from '../services/auth'
 
 export default function Fornecedores() {
+  const { isAdmin } = useAuth()
   const [fornecedores, setFornecedores] = useState([])
   const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
@@ -110,9 +112,11 @@ export default function Fornecedores() {
                   <button onClick={() => abrirEdicao(f)} className="text-gray-400 hover:text-primary mr-3">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => excluir(f)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => excluir(f)} className="text-gray-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

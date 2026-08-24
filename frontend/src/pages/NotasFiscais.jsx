@@ -11,8 +11,10 @@ import {
   TIPOS_NOTA,
 } from '../services/notasFiscais'
 import NotaFiscalModal from '../components/NotaFiscalModal'
+import { useAuth } from '../services/auth'
 
 export default function NotasFiscais() {
+  const { isAdmin } = useAuth()
   const [notas, setNotas] = useState([])
   const [maquinas, setMaquinas] = useState([])
   const [fornecedores, setFornecedores] = useState([])
@@ -138,9 +140,11 @@ export default function NotasFiscais() {
                   <button onClick={() => { setEditando(n); setModalAberto(true) }} className="text-gray-400 hover:text-primary mr-3">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => excluir(n)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => excluir(n)} className="text-gray-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </Td>
               </tr>
             ))}

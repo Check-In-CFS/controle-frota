@@ -1,10 +1,13 @@
 import os
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth_deps import obter_usuario_atual
 from app.routers import (
+    auth,
+    usuarios,
     maquinas,
     fornecedores,
     manutencoes,
@@ -34,15 +37,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(maquinas.router)
-app.include_router(fornecedores.router)
-app.include_router(manutencoes.router)
-app.include_router(preventivas.router)
-app.include_router(abastecimentos.router)
-app.include_router(notas_fiscais.router)
-app.include_router(checklist.router)
-app.include_router(dashboard.router)
-app.include_router(relatorios.router)
+# /auth (login) fica público -- sem exigir token, é a própria porta de entrada.
+app.include_router(auth.router)
+
+# Todos os demais módulos exigem estar logado (token JWT válido no header Authorization).
+# Ações de exclusão exigem papel 'admin' -- isso é checado individualmente em cada
+# rota DELETE dos routers abaixo, via dependency `exigir_admin`.
+_protegido = [Depends(obter_usuario_atual)]
+
+app.include_router(usuarios.router, dependencies=_protegido)
+app.include_router(maquinas.router, dependencies=_protegido)
+app.include_router(fornecedores.router, dependencies=_protegido)
+app.include_router(manutencoes.router, dependencies=_protegido)
+app.include_router(preventivas.router, dependencies=_protegido)
+app.include_router(abastecimentos.router, dependencies=_protegido)
+app.include_router(notas_fiscais.router, dependencies=_protegido)
+app.include_router(checklist.router, dependencies=_protegido)
+app.include_router(dashboard.router, dependencies=_protegido)
+app.include_router(relatorios.router, dependencies=_protegido)
 
 
 @app.get("/")

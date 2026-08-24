@@ -1,8 +1,9 @@
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.auth_deps import exigir_admin, UsuarioLogado
 from app.database import get_supabase
 from app.schemas.abastecimentos import Abastecimento, AbastecimentoCreate, AbastecimentoUpdate
 
@@ -73,7 +74,7 @@ def atualizar_abastecimento(abastecimento_id: int, abastecimento: AbastecimentoU
 
 
 @router.delete("/{abastecimento_id}", status_code=204)
-def excluir_abastecimento(abastecimento_id: int):
+def excluir_abastecimento(abastecimento_id: int, _: UsuarioLogado = Depends(exigir_admin)):
     sb = get_supabase()
     resp = sb.table("abastecimentos").delete().eq("id", abastecimento_id).execute()
     if not resp.data:

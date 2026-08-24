@@ -13,8 +13,10 @@ import {
   unidadeQuantidade,
 } from '../services/abastecimentos'
 import AbastecimentoModal from '../components/AbastecimentoModal'
+import { useAuth } from '../services/auth'
 
 export default function Abastecimentos() {
+  const { isAdmin } = useAuth()
   const [abastecimentos, setAbastecimentos] = useState([])
   const [maquinas, setMaquinas] = useState([])
   const [fornecedores, setFornecedores] = useState([])
@@ -149,9 +151,11 @@ export default function Abastecimentos() {
                   <button onClick={() => { setEditando(a); setModalAberto(true) }} className="text-gray-400 hover:text-primary mr-3">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => excluir(a)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => excluir(a)} className="text-gray-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </Td>
               </tr>
             ))}

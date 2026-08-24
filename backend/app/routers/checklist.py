@@ -1,7 +1,8 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.auth_deps import exigir_admin, UsuarioLogado
 from app.database import get_supabase
 from app.schemas.checklist import (
     ChecklistModelo,
@@ -34,7 +35,7 @@ def criar_modelo(modelo: ChecklistModeloCreate):
 
 
 @router.delete("/modelos/{modelo_id}", status_code=204)
-def excluir_modelo(modelo_id: int):
+def excluir_modelo(modelo_id: int, _: UsuarioLogado = Depends(exigir_admin)):
     sb = get_supabase()
     resp = sb.table("checklist_modelos").delete().eq("id", modelo_id).execute()
     if not resp.data:

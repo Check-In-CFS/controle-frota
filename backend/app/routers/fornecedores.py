@@ -1,7 +1,8 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.auth_deps import exigir_admin, UsuarioLogado
 from app.database import get_supabase
 from app.schemas.fornecedores import Fornecedor, FornecedorCreate, FornecedorUpdate
 
@@ -38,7 +39,7 @@ def atualizar_fornecedor(fornecedor_id: int, fornecedor: FornecedorUpdate):
 
 
 @router.delete("/{fornecedor_id}", status_code=204)
-def excluir_fornecedor(fornecedor_id: int):
+def excluir_fornecedor(fornecedor_id: int, _: UsuarioLogado = Depends(exigir_admin)):
     sb = get_supabase()
     resp = sb.table("fornecedores").delete().eq("id", fornecedor_id).execute()
     if not resp.data:

@@ -9,6 +9,7 @@ import {
   SITUACOES_MAQUINA,
 } from '../services/maquinas'
 import MaquinaModal from '../components/MaquinaModal'
+import { useAuth } from '../services/auth'
 
 const BADGE_SITUACAO = {
   ativa: 'bg-green-100 text-green-700',
@@ -17,6 +18,7 @@ const BADGE_SITUACAO = {
 }
 
 export default function Maquinas() {
+  const { isAdmin } = useAuth()
   const [maquinas, setMaquinas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState(null)
@@ -143,9 +145,11 @@ export default function Maquinas() {
                   <button onClick={() => abrirEdicao(m)} className="text-gray-400 hover:text-primary mr-3">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </Td>
               </tr>
             ))}
