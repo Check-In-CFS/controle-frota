@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './services/auth'
 import { DialogoProvider } from './components/DialogoProvider'
+import Toaster from './components/Toaster'
 import RotaProtegida from './components/RotaProtegida'
 import Layout from './components/Layout'
 import Login from './pages/Login'
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <AuthProvider>
       <DialogoProvider>
+      <Toaster />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />

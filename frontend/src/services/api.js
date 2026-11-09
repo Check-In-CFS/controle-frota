@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { obterMock } from './mockData'
+import { toast } from './toast'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
@@ -45,12 +46,34 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Se o token expirou ou é inválido (401), desloga e manda pra tela de login.
+// Avisos automáticos de sucesso para escritas (criar/editar/excluir).
+// Rotas que não são "salvar" (login, leitura de XML) ficam de fora.
+const SEM_AVISO = ['/auth/', '/importar-xml']
+const MENSAGEM_SUCESSO = {
+  post: 'Salvo com sucesso',
+  put: 'Alterações salvas',
+  patch: 'Alterações salvas',
+  delete: 'Excluído com sucesso',
+}
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const metodo = (response.config.method || '').toLowerCase()
+    const url = response.config.url || ''
+    if (MENSAGEM_SUCESSO[metodo] && !SEM_AVISO.some((t) => url.includes(t))) {
+      toast.sucesso(MENSAGEM_SUCESSO[metodo])
+    }
+    return response
+  },
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || ''
+    // 401 fora do login = sessão expirada: volta ao login e explica o motivo
+    if (error.response?.status === 401 && !url.includes('/auth/login')) {
+      const tinhaSessao = !!localStorage.getItem('auth')
       localStorage.removeItem('auth')
+      if (tinhaSessao) {
+        try { sessionStorage.setItem('sessaoExpirada', '1') } catch { /* sem sessionStorage: segue sem aviso */ }
+      }
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'
       }

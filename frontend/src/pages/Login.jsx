@@ -10,7 +10,15 @@ export default function Login() {
   const [usuario, setUsuario] = useState('')
   const [senha, setSenha] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
-  const [erro, setErro] = useState(null)
+  const [erro, setErro] = useState(() => {
+    try {
+      if (sessionStorage.getItem('sessaoExpirada')) {
+        sessionStorage.removeItem('sessaoExpirada')
+        return 'Sua sessão expirou. Entre novamente para continuar.'
+      }
+    } catch { /* sem sessionStorage */ }
+    return null
+  })
   const [entrando, setEntrando] = useState(false)
 
   async function handleSubmit(e) {
