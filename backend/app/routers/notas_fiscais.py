@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from app.auth_deps import exigir_admin, exigir_operacional, obter_usuario_atual, UsuarioLogado
 from app.auditoria import registrar_log
 from app.database import get_supabase
+from app import fotos_notas, leitura_nota
+from app.rate_limit import limitar_por_chave
 from app.maquina_guard import validar_maquina_permite_lancamento
 from app.schemas.notas_fiscais import NotaFiscal, NotaFiscalCreate, NotaFiscalUpdate
 
@@ -104,6 +106,10 @@ def _validar_referencias(sb, nota) -> None:
 @router.post("", response_model=NotaFiscal, status_code=201)
 def criar_nota_fiscal(nota: NotaFiscalCreate, usuario: UsuarioLogado = Depends(exigir_operacional)):
     sb = get_supabase()
+
+    # Mecânico só pode anexar foto que ele mesmo enviou (o caminho começa com o id dele)
+    if nota.arquivo_url and usuario.papel != "admin" and not nota.arquivo_url.startswith(f"{usuario.id}/"):
+        raise HTTPException(status_code=403, detail="Foto inválida para esta nota.")
 
     _validar_referencias(sb, nota)
 
@@ -300,3 +306,66 @@ def importar_xml_nfe(arquivo: UploadFile = File(...), usuario: UsuarioLogado = D
     dados["fornecedor_id"] = fornecedor["id"]
     dados["fornecedor_nome"] = fornecedor["nome"]
     return dados
+
+
+LEITURAS_POR_HORA = 30
+
+
+@router.post("/ler-foto")
+def ler_foto_nota(arquivo: UploadFile = File(...), usuario: UsuarioLogado = Depends(exigir_operacional)):
+    """
+    Recebe a foto da nota, guarda no Storage (bucket privado) e tenta ler os dados com IA.
+    Devolve o caminho da foto (para gravar na nota) e os campos lidos como SUGESTÃO --
+    quem lança confere antes de salvar. Se a leitura falhar, a foto fica guardada do mesmo jeito.
+    """
+    limitar_por_chave(
+        f"foto:{usuario.id}", LEITURAS_POR_HORA, 3600,
+        "Muitas fotos enviadas em pouco tempo. Aguarde um pouco e tente de novo.",
+    )
+
+    conteudo = arquivo.file.read(fotos_notas.TAMANHO_MAXIMO_UPLOAD + 1)
+    if len(conteudo) > fotos_notas.TAMANHO_MAXIMO_UPLOAD:
+        raise HTTPException(status_code=413, detail="Foto muito grande (máximo 12MB).")
+
+    jpeg = fotos_notas.normalizar_imagem(conteudo)
+    sb = get_supabase()
+    caminho = fotos_notas.guardar_foto(sb, usuario, jpeg)
+
+    dados, aviso = None, None
+    if not leitura_nota.disponivel():
+        aviso = "A leitura automática não está ativada. A foto foi guardada; preencha os dados manualmente."
+    else:
+        try:
+            dados = leitura_nota.saneado(leitura_nota.ler_nota(jpeg))
+        except Exception as exc:
+            print(f"[notas_fiscais] falha na leitura da foto: {exc}")
+            aviso = "Não consegui ler a foto. Ela foi guardada; preencha os dados manualmente."
+
+    if dados:
+        # tenta casar o emitente com um fornecedor já cadastrado (pelo CNPJ)
+        dados["fornecedor_id"] = None
+        if dados["fornecedor_cnpj"]:
+            achou = sb.table("fornecedores").select("id, nome").eq("cnpj", dados["fornecedor_cnpj"]).execute()
+            if achou.data:
+                dados["fornecedor_id"] = achou.data[0]["id"]
+                dados["fornecedor_nome"] = achou.data[0]["nome"]
+        registrar_log(usuario, "criar", "nota_fiscal", None, "Foto de nota fiscal enviada e lida")
+
+    return {"arquivo_url": caminho, "dados": dados, "aviso": aviso}
+
+
+@router.get("/{nota_id}/foto")
+def foto_da_nota(nota_id: int, usuario: UsuarioLogado = Depends(obter_usuario_atual)):
+    """Link temporário (2 min) da foto. Só admin e quem enviou a foto podem abrir."""
+    sb = get_supabase()
+    resp = sb.table("notas_fiscais").select("arquivo_url").eq("id", nota_id).execute()
+    if not resp.data or not resp.data[0].get("arquivo_url"):
+        raise HTTPException(status_code=404, detail="Esta nota não tem foto.")
+
+    caminho = resp.data[0]["arquivo_url"]
+    if not fotos_notas.usuario_pode_ver(usuario, caminho):
+        raise HTTPException(status_code=403, detail="Você não tem permissão para ver esta foto.")
+
+    if caminho.startswith(("http://", "https://")):  # notas antigas, com link externo
+        return {"url": caminho}
+    return {"url": fotos_notas.link_temporario(sb, caminho)}

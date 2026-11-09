@@ -40,6 +40,21 @@ def limitar_login(request: Request) -> None:
     fila.append(agora)
 
 
+_por_chave: dict[str, deque] = defaultdict(deque)
+
+
+def limitar_por_chave(chave: str, maximo: int, janela_segundos: int, mensagem: str) -> None:
+    """Limite genérico (ex: leituras de foto por usuário/hora, que custam dinheiro)."""
+    agora = time.monotonic()
+    fila = _por_chave[chave]
+    while fila and agora - fila[0] > janela_segundos:
+        fila.popleft()
+    if len(fila) >= maximo:
+        raise HTTPException(status_code=429, detail=mensagem)
+    fila.append(agora)
+
+
 def zerar() -> None:
     """Usado nos testes."""
     _tentativas.clear()
+    _por_chave.clear()

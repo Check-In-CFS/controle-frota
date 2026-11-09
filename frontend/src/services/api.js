@@ -48,7 +48,7 @@ api.interceptors.request.use((config) => {
 
 // Avisos automáticos de sucesso para escritas (criar/editar/excluir).
 // Rotas que não são "salvar" (login, leitura de XML) ficam de fora.
-const SEM_AVISO = ['/auth/', '/importar-xml']
+const SEM_AVISO = ['/auth/', '/importar-xml', '/ler-foto']
 const MENSAGEM_SUCESSO = {
   post: 'Salvo com sucesso',
   put: 'Alterações salvas',

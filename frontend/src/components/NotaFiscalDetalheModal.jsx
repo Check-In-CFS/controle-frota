@@ -1,9 +1,26 @@
-import { X, Pencil } from 'lucide-react'
-import { labelTipoNota } from '../services/notasFiscais'
+import { useState } from 'react'
+import { X, Pencil, Image as IconeFoto } from 'lucide-react'
+import { labelTipoNota, obterUrlFotoNota, extrairMensagemErro } from '../services/notasFiscais'
 import Modal from './Modal'
 
 export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, onEditar }) {
+  const [abrindoFoto, setAbrindoFoto] = useState(false)
+  const [erroFoto, setErroFoto] = useState(null)
+
   if (!nota) return null
+
+  async function verFoto() {
+    setErroFoto(null)
+    setAbrindoFoto(true)
+    try {
+      const url = await obterUrlFotoNota(nota.id)
+      window.open(url, '_blank', 'noopener')
+    } catch (err) {
+      setErroFoto(extrairMensagemErro(err, 'Não foi possível abrir a foto.'))
+    } finally {
+      setAbrindoFoto(false)
+    }
+  }
 
   const centroDespesa = centrosDespesa.find((c) => c.id === nota.centro_despesa_id)?.nome
 
@@ -30,6 +47,18 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
         </div>
 
         <div className="p-6 space-y-5">
+          {nota.arquivo_url && (
+            <div>
+              <button
+                onClick={verFoto}
+                disabled={abrindoFoto}
+                className="flex items-center gap-2 text-sm font-medium text-primary border border-primary/30 rounded-lg px-4 py-2.5 hover:bg-indigo-50 disabled:opacity-60"
+              >
+                <IconeFoto size={16} /> {abrindoFoto ? 'Abrindo...' : 'Ver foto da nota'}
+              </button>
+              {erroFoto && <p role="alert" className="text-sm text-red-600 mt-2">{erroFoto}</p>}
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Data de Emissão" valor={formatarData(nota.data_emissao)} />
             <Campo label="Tipo" valor={labelTipoNota(nota.tipo)} />

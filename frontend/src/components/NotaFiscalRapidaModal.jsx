@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import { X, Upload, Plus, Trash2, ChevronLeft, Check, FileCheck2 } from 'lucide-react'
-import { TIPOS_NOTA, importarXmlNotaFiscal, extrairMensagemErro } from '../services/notasFiscais'
+import { X, Upload, Plus, Trash2, ChevronLeft, Check, FileCheck2, Camera } from 'lucide-react'
+import { TIPOS_NOTA, importarXmlNotaFiscal, lerFotoNotaFiscal, extrairMensagemErro } from '../services/notasFiscais'
 import { api } from '../services/api'
 import FornecedorModal from './FornecedorModal'
 import Modal from './Modal'
@@ -16,6 +16,7 @@ const VAZIO = {
   tipo: 'peca',
   valor_total: '',
   observacoes: '',
+  arquivo_url: '',
   maquina_ids: [],
   itens: [],
 }
@@ -39,7 +40,10 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
   const [importando, setImportando] = useState(false)
   const [xmlImportado, setXmlImportado] = useState(null)
   const [filtroMaquina, setFiltroMaquina] = useState('')
+  const [lendoFoto, setLendoFoto] = useState(false)
+  const [fotoInfo, setFotoInfo] = useState(null)
   const inputXmlRef = useRef(null)
+  const inputFotoRef = useRef(null)
 
   const temItens = form.itens.length > 0
   const totalItens = form.itens.reduce((s, i) => s + (Number(i.quantidade) || 0) * (Number(i.valor_unitario) || 0), 0)
@@ -99,6 +103,38 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
     } finally {
       setImportando(false)
       if (inputXmlRef.current) inputXmlRef.current.value = ''
+    }
+  }
+
+  async function handleFoto(e) {
+    const arquivo = e.target.files?.[0]
+    if (!arquivo) return
+    setErro(null)
+    setLendoFoto(true)
+    try {
+      const r = await lerFotoNotaFiscal(arquivo)
+      const d = r.dados
+      setForm((f) => ({
+        ...f,
+        arquivo_url: r.arquivo_url,
+        ...(d?.numero ? { numero: d.numero } : {}),
+        ...(d?.serie ? { serie: d.serie } : {}),
+        ...(d?.data_emissao ? { data_emissao: d.data_emissao } : {}),
+        ...(d?.valor_total != null ? { valor_total: d.valor_total } : {}),
+        ...(d?.tipo ? { tipo: d.tipo } : {}),
+        ...(d?.fornecedor_id ? { fornecedor_id: d.fornecedor_id } : {}),
+        ...(d?.itens?.length ? { itens: d.itens } : {}),
+      }))
+      setFotoInfo({
+        aviso: r.aviso,
+        lido: !!d,
+        fornecedorNaoCadastrado: d && !d.fornecedor_id && d.fornecedor_nome ? d.fornecedor_nome : null,
+      })
+    } catch (err) {
+      setErro(extrairMensagemErro(err, 'Não foi possível enviar a foto. Tente de novo.'))
+    } finally {
+      setLendoFoto(false)
+      if (inputFotoRef.current) inputFotoRef.current.value = ''
     }
   }
 
@@ -172,11 +208,27 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
 
             {passo === 0 && (
               <>
-                <div className="rounded-xl border border-dashed border-primary/40 bg-indigo-50/50 p-3">
+                <div className="rounded-xl border border-dashed border-primary/40 bg-indigo-50/50 p-3 space-y-1">
+                  <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" id="foto-nota" />
+                  <label
+                    htmlFor="foto-nota"
+                    className="flex items-center justify-center gap-2 text-sm font-medium text-primary cursor-pointer py-2"
+                  >
+                    {form.arquivo_url ? <Check size={18} /> : <Camera size={18} />}
+                    {lendoFoto ? 'Enviando e lendo a foto...' : form.arquivo_url ? 'Foto anexada — toque para trocar' : 'Tirar foto da nota (preenche sozinho)'}
+                  </label>
+                  {fotoInfo && (
+                    <p className="text-xs text-gray-600 text-center">
+                      {fotoInfo.aviso || 'Dados lidos da foto. Confira tudo abaixo antes de continuar.'}
+                      {fotoInfo.fornecedorNaoCadastrado && (
+                        <> Fornecedor lido: <strong>{fotoInfo.fornecedorNaoCadastrado}</strong> (não está cadastrado — escolha outro ou cadastre).</>
+                      )}
+                    </p>
+                  )}
                   <input ref={inputXmlRef} type="file" accept=".xml,text/xml" onChange={handleArquivoXml} className="hidden" id="xml-nota" />
                   <label
                     htmlFor="xml-nota"
-                    className="flex items-center justify-center gap-2 text-sm font-medium text-primary cursor-pointer py-2"
+                    className="flex items-center justify-center gap-2 text-sm font-medium text-primary cursor-pointer py-2 border-t border-primary/20"
                   >
                     {xmlImportado ? <FileCheck2 size={18} /> : <Upload size={18} />}
                     {importando ? 'Lendo o XML...' : xmlImportado ? 'XML importado — toque para trocar' : 'Tenho o XML da nota (preenche sozinho)'}
@@ -360,7 +412,7 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
             )}
             <button
               type="submit"
-              disabled={salvando || importando}
+              disabled={salvando || importando || lendoFoto}
               className="flex-1 bg-primary text-white py-3 rounded-lg text-sm font-semibold hover:bg-primary-dark disabled:opacity-60"
             >
               {passo < 2 ? 'Continuar' : salvando ? 'Lançando...' : 'Lançar nota'}

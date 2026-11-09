@@ -1,4 +1,5 @@
 import { api } from './api'
+import { reduzirImagem } from './imagem'
 
 export const TIPOS_NOTA = [
   { value: 'peca', label: 'Peça' },
@@ -40,6 +41,22 @@ export async function importarXmlNotaFiscal(arquivo) {
   formData.append('arquivo', arquivo)
   const { data } = await api.post('/notas-fiscais/importar-xml', formData)
   return data
+}
+
+// Envia a foto da nota: o servidor guarda (bucket privado) e tenta ler os dados.
+// Retorna { arquivo_url, dados (ou null), aviso }.
+export async function lerFotoNotaFiscal(arquivo) {
+  const imagem = await reduzirImagem(arquivo)
+  const formData = new FormData()
+  formData.append('arquivo', imagem, 'nota.jpg')
+  const { data } = await api.post('/notas-fiscais/ler-foto', formData)
+  return data
+}
+
+// Link temporário (2 min) para abrir a foto guardada. O servidor confere a permissão.
+export async function obterUrlFotoNota(notaId) {
+  const { data } = await api.get(`/notas-fiscais/${notaId}/foto`)
+  return data.url
 }
 
 export function labelTipoNota(valor) {

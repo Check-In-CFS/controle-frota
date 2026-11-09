@@ -10,7 +10,7 @@ os.environ["JWT_SECRET"] = "segredo-de-teste-com-tamanho-suficiente-para-hs256"
 os.environ.pop("RAILWAY_ENVIRONMENT", None)
 os.environ.pop("RAILWAY_ENVIRONMENT_NAME", None)
 
-from app import database, rate_limit  # noqa: E402
+from app import database, fotos_notas, rate_limit  # noqa: E402
 from app.auth_utils import criar_token, hash_senha  # noqa: E402
 from app.main import app  # noqa: E402
 
@@ -46,11 +46,40 @@ class ConsultaFalsa:
         return Resposta(list(self.banco.tabelas.get(self.nome, [])))
 
 
+class BucketFalso:
+    def __init__(self, banco):
+        self.banco = banco
+
+    def upload(self, caminho, conteudo, opcoes=None):
+        self.banco.arquivos[caminho] = conteudo
+
+    def create_signed_url(self, caminho, expira_em):
+        return {"signedURL": f"http://storage.falso/{caminho}?expira={expira_em}"}
+
+
+class StorageFalso:
+    def __init__(self, banco):
+        self.banco = banco
+
+    def get_bucket(self, nome):
+        if nome not in self.banco.buckets:
+            raise Exception("bucket não existe")
+
+    def create_bucket(self, nome, options=None):
+        self.banco.buckets[nome] = options
+
+    def from_(self, nome):
+        return BucketFalso(self.banco)
+
+
 class BancoFalso:
     def __init__(self):
         self.tabelas = {}
         self.consultas = []
         self.atualizacoes = []
+        self.arquivos = {}
+        self.buckets = {}
+        self.storage = StorageFalso(self)
 
     def table(self, nome):
         return ConsultaFalsa(self, nome)
@@ -62,6 +91,7 @@ def banco(monkeypatch):
     monkeypatch.setattr(database, "create_client", lambda url, key: falso)
     database.get_supabase.cache_clear()
     rate_limit.zerar()
+    fotos_notas._bucket_garantido = False
     yield falso
     database.get_supabase.cache_clear()
 
