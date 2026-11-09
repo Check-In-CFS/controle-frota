@@ -14,3 +14,20 @@
     @apply border-red-500 focus:ring-red-200;
   }
 }
+
+/* Celular/tablet: área de toque mínima (~44px) nos botões que só têm ícone */
+@media (pointer: coarse) {
+  button[aria-label="Editar"],
+  button[aria-label="Excluir"],
+  button[aria-label="Fechar"],
+  button[aria-label="Fechar aviso"],
+  button[aria-label="Abrir menu"],
+  button[aria-label="Mostrar senha"],
+  button[aria-label="Ocultar senha"] {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
