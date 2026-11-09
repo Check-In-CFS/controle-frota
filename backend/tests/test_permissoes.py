@@ -52,3 +52,32 @@ def test_mecanico_nao_promove_a_si_mesmo(client):
 
 def test_documentacao_da_api_ligada_so_fora_de_producao(client):
     assert client.get("/docs").status_code == 200
+
+
+# ---------- Notas fiscais: o mecânico lança e consulta, mas só o admin corrige ----------
+
+def test_mecanico_lista_notas_fiscais(client):
+    assert client.get("/notas-fiscais", headers=cabecalho("mecanico")).status_code == 200
+
+
+def test_mecanico_lanca_nota_fiscal(client):
+    # corpo vazio: passou pela permissão e parou na validação
+    assert client.post("/notas-fiscais", json={}, headers=cabecalho("mecanico")).status_code == 422
+
+
+def test_mecanico_importa_xml_de_nota(client):
+    r = client.post("/notas-fiscais/importar-xml", files={"arquivo": ("nota.txt", b"x")}, headers=cabecalho("mecanico"))
+    assert r.status_code == 422  # extensão errada, mas já passou pela permissão
+
+
+@pytest.mark.parametrize("papel", ["mecanico", "diretor"])
+def test_so_admin_edita_nota_fiscal(client, papel):
+    assert client.patch("/notas-fiscais/1", json={"observacoes": "x"}, headers=cabecalho(papel)).status_code == 403
+
+
+def test_admin_edita_nota_fiscal(client):
+    assert client.patch("/notas-fiscais/1", json={"observacoes": "x"}, headers=cabecalho("admin")).status_code != 403
+
+
+def test_mecanico_nao_exclui_nota_fiscal(client):
+    assert client.delete("/notas-fiscais/1", headers=cabecalho("mecanico")).status_code == 403

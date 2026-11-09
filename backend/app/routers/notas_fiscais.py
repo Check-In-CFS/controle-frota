@@ -128,7 +128,7 @@ def criar_nota_fiscal(nota: NotaFiscalCreate, usuario: UsuarioLogado = Depends(e
 
 
 @router.patch("/{nota_id}", response_model=NotaFiscal)
-def atualizar_nota_fiscal(nota_id: int, nota: NotaFiscalUpdate, usuario: UsuarioLogado = Depends(exigir_operacional)):
+def atualizar_nota_fiscal(nota_id: int, nota: NotaFiscalUpdate, usuario: UsuarioLogado = Depends(exigir_admin)):
     sb = get_supabase()
 
     existente = sb.table("notas_fiscais").select("*").eq("id", nota_id).execute()

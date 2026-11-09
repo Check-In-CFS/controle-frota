@@ -15,12 +15,14 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
             Nota Fiscal {nota.numero} / {nota.serie}
           </h2>
           <div className="flex items-center gap-2">
-            <button
-              onClick={onEditar}
-              className="flex items-center gap-1.5 text-sm text-primary hover:bg-indigo-50 px-3 py-1.5 rounded-lg"
-            >
-              <Pencil size={14} /> Editar
-            </button>
+            {onEditar && (
+              <button
+                onClick={onEditar}
+                className="flex items-center gap-1.5 text-sm text-primary hover:bg-indigo-50 px-3 py-1.5 rounded-lg"
+              >
+                <Pencil size={14} /> Editar
+              </button>
+            )}
             <button onClick={onClose} className="text-gray-500 hover:text-gray-600 p-1.5" aria-label="Fechar" title="Fechar">
               <X size={20} />
             </button>

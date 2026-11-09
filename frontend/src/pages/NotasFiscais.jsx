@@ -18,9 +18,10 @@ import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
 import Carregando from '../components/Carregando'
+import NotasFiscaisMecanico from './NotasFiscaisMecanico'
 
-export default function NotasFiscais() {
-  const { isAdmin, isDiretor, isMecanico } = useAuth()
+function NotasFiscaisGestao() {
+  const { isAdmin, isDiretor } = useAuth()
   const { confirmar } = useDialogo()
   const location = useLocation()
   const [notas, setNotas] = useState([])
@@ -112,7 +113,7 @@ export default function NotasFiscais() {
 
   const total = notas.reduce((soma, n) => soma + (n.valor_total || 0), 0)
 
-  if (isDiretor || isMecanico) return <AcessoNegado mensagem="Você não tem permissão para acessar este módulo." />
+  if (isDiretor) return <AcessoNegado mensagem="Você não tem permissão para acessar este módulo." />
 
   return (
     <div>
@@ -271,4 +272,10 @@ function formatarData(iso) {
 
 function formatarMoeda(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+// Mecânico tem uma tela própria (lançar e consultar); admin/diretor usam a de gestão.
+export default function NotasFiscais() {
+  const { isMecanico } = useAuth()
+  return isMecanico ? <NotasFiscaisMecanico /> : <NotasFiscaisGestao />
 }

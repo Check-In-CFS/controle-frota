@@ -25,7 +25,7 @@ const NAV_ITEMS = [
   { to: '/manutencoes', label: 'Manutenções', icon: Wrench, ocultarPara: ['diretor'] },
   { to: '/abastecimentos', label: 'Abastecimentos', icon: Fuel, ocultarPara: ['diretor'] },
   { to: '/fornecedores', label: 'Fornecedores', icon: Briefcase, ocultarPara: ['diretor', 'mecanico'] },
-  { to: '/notas-fiscais', label: 'Notas Fiscais', icon: FileText, ocultarPara: ['diretor', 'mecanico'] },
+  { to: '/notas-fiscais', label: 'Notas Fiscais', icon: FileText, ocultarPara: ['diretor'] },
   { to: '/checklist', label: 'Checklist', icon: CheckSquare, ocultarPara: ['diretor'] },
   { to: '/financeiro', label: 'Financeiro', icon: Wallet, ocultarPara: ['mecanico'] },
   { to: '/relatorios', label: 'Relatórios', icon: BarChart3, ocultarPara: ['mecanico'] },
