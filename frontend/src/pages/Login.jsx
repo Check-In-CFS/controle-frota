@@ -97,6 +97,10 @@ export default function Login() {
           </button>
         </form>
 
+        <p className="text-xs text-gray-500 mt-4 text-center">
+          Não tem acesso? Peça a criação do seu usuário ao administrador do sistema.
+        </p>
+
         <div className="mt-6 pt-4 border-t border-gray-100">
           <button
             type="button"

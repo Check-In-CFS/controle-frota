@@ -42,7 +42,10 @@ def listar_maquinas(
         query = query.eq("centro_despesa_id", centro_despesa_id)
     if busca:
         # or_ do PostgREST para buscar em várias colunas de uma vez
-        termo = f"%{busca}%"
+        # O valor vai entre aspas (com \\ e " escapados) para que vírgulas e parênteses
+        # digitados na busca não alterem a estrutura do filtro do PostgREST.
+        termo = busca.replace("\\", "\\\\").replace('"', '\\"')
+        termo = f'"%{termo}%"'
         query = query.or_(
             f"codigo.ilike.{termo},numero_patrimonial.ilike.{termo},"
             f"marca.ilike.{termo},modelo.ilike.{termo}"

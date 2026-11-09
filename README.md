@@ -43,6 +43,26 @@ npm run dev -- --host 0.0.0.0
 ```
 O Codespaces abre automaticamente a porta 5173 com o preview do sistema.
 
+## Rodar com Docker (ambiente de testes local)
+
+```bash
+cp backend/.env.example backend/.env   # preencha SUPABASE_URL, SUPABASE_SERVICE_KEY e JWT_SECRET
+docker compose up --build
+```
+
+- Frontend: http://localhost:5173 · Backend: http://localhost:8000 (docs em `/docs`)
+- O código fica montado como volume: o que você editar recarrega sem rebuild.
+- Cuidado: o backend usa a `service_role`, então grave em um projeto Supabase de **testes**, não no de produção.
+- Não existe cadastro público: novos usuários são criados por um administrador na tela de Usuários.
+
+### Testes do backend
+
+Não usam o Supabase real (o banco é simulado):
+
+```bash
+docker compose run --rm --no-deps -v "$PWD/backend":/app backend sh -c "pip install -q -r requirements-dev.txt && python -m pytest -q"
+```
+
 ## Deploy em produção (depois de testado)
 
 ### Frontend no Vercel

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.auth_deps import UsuarioLogado, obter_usuario_atual
 from app.auth_utils import criar_token, verificar_senha
 from app.database import get_supabase
+from app.rate_limit import limitar_login
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
@@ -25,7 +26,7 @@ class LoginResponse(BaseModel):
     papel: str
 
 
-@router.post("/login", response_model=LoginResponse)
+@router.post("/login", response_model=LoginResponse, dependencies=[Depends(limitar_login)])
 def login(payload: LoginPayload):
     sb = get_supabase()
     resp = sb.table("usuarios").select("*").eq("usuario", payload.usuario).eq("ativo", True).execute()
