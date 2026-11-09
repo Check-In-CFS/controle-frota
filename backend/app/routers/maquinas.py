@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.auth_deps import exigir_admin, obter_usuario_atual, UsuarioLogado
+from app.auth_deps import exigir_admin, exigir_operacional, UsuarioLogado
 from app.auditoria import registrar_log
 from app.database import get_supabase
 from app.schemas.maquinas import (
@@ -62,7 +62,7 @@ def obter_maquina(maquina_id: int):
 
 
 @router.post("", response_model=Maquina, status_code=201)
-def criar_maquina(maquina: MaquinaCreate, usuario: UsuarioLogado = Depends(obter_usuario_atual)):
+def criar_maquina(maquina: MaquinaCreate, usuario: UsuarioLogado = Depends(exigir_operacional)):
     sb = get_supabase()
     # unicidade de código tratada pela constraint UNIQUE do banco;
     # aqui só traduzimos o erro pro usuário

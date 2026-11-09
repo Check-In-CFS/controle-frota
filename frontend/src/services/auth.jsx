@@ -17,14 +17,6 @@ export function AuthProvider({ children }) {
     return sessao
   }, [])
 
-  const registrar = useCallback(async (nome, usuario, senha) => {
-    const { data } = await api.post('/auth/registrar', { nome, usuario, senha })
-    const sessao = { token: data.token, usuario: data.usuario, nome: data.nome, papel: data.papel }
-    localStorage.setItem('auth', JSON.stringify(sessao))
-    setAuth(sessao)
-    return sessao
-  }, [])
-
   const entrarComoObservador = useCallback(() => {
     const sessao = { token: null, usuario: 'observador', nome: 'Observador', papel: 'observador' }
     localStorage.setItem('auth', JSON.stringify(sessao))
@@ -43,7 +35,7 @@ export function AuthProvider({ children }) {
   const isObservador = auth?.papel === 'observador'
 
   return (
-    <AuthContext.Provider value={{ auth, login, registrar, entrarComoObservador, logout, isAdmin, isDiretor, isMecanico, isObservador }}>
+    <AuthContext.Provider value={{ auth, login, entrarComoObservador, logout, isAdmin, isDiretor, isMecanico, isObservador }}>
       {children}
     </AuthContext.Provider>
   )
