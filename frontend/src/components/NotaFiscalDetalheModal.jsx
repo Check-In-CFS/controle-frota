@@ -1,5 +1,6 @@
 import { X, Pencil } from 'lucide-react'
 import { labelTipoNota } from '../services/notasFiscais'
+import Modal from './Modal'
 
 export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, onEditar }) {
   if (!nota) return null
@@ -7,7 +8,7 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
   const centroDespesa = centrosDespesa.find((c) => c.id === nota.centro_despesa_id)?.nome
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+    <Modal onClose={onClose} fecharAoClicarFora>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800">
@@ -20,7 +21,7 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
             >
               <Pencil size={14} /> Editar
             </button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1.5">
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-600 p-1.5" aria-label="Fechar" title="Fechar">
               <X size={20} />
             </button>
           </div>
@@ -47,7 +48,7 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Nenhuma máquina vinculada.</p>
+              <p className="text-sm text-gray-500">Nenhuma máquina vinculada.</p>
             )}
           </div>
 
@@ -77,7 +78,7 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-gray-400">Nenhum item detalhado nesta nota.</p>
+              <p className="text-sm text-gray-500">Nenhum item detalhado nesta nota.</p>
             )}
           </div>
 
@@ -89,7 +90,7 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 

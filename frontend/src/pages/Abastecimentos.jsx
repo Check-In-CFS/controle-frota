@@ -155,9 +155,9 @@ export default function Abastecimentos() {
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-400 text-sm">Carregando...</p>}
+        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
         {!carregando && abastecimentos.length === 0 && (
-          <p className="text-center py-8 text-gray-400 text-sm">Nenhum abastecimento encontrado.</p>
+          <p className="text-center py-8 text-gray-500 text-sm">Nenhum abastecimento encontrado.</p>
         )}
         {!carregando && (mostrarTodos ? abastecimentos : abastecimentos.slice(0, 3)).map((a) => (
           <div key={a.id} className="bg-white border border-gray-200 rounded-xl p-4">
@@ -168,20 +168,20 @@ export default function Abastecimentos() {
                   {labelTipoCombustivel(a.tipo_combustivel)}
                 </span>
               </div>
-              <span className="text-xs text-gray-400 shrink-0">{formatarData(a.data)}</span>
+              <span className="text-xs text-gray-500 shrink-0">{formatarData(a.data)}</span>
             </div>
             <div className="flex items-center justify-between text-sm mt-2">
               <span className="text-gray-600">{a.quantidade} {unidadeQuantidade(a.tipo_combustivel)}</span>
               <span className="font-semibold text-gray-800">{formatarMoeda(a.valor_total)}</span>
             </div>
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100">
-              <span className="text-xs text-gray-400">{a.fornecedor_nome || 'Sem fornecedor'}</span>
+              <span className="text-xs text-gray-500">{a.fornecedor_nome || 'Sem fornecedor'}</span>
               <div className="flex gap-4">
-                <button onClick={() => { setEditando(a); setModalAberto(true) }} className="text-gray-400 hover:text-primary p-1">
+                <button onClick={() => { setEditando(a); setModalAberto(true) }} className="text-gray-500 hover:text-primary p-1" aria-label="Editar" title="Editar">
                   <Pencil size={17} />
                 </button>
                 {isAdmin && (
-                  <button onClick={() => excluir(a)} className="text-gray-400 hover:text-red-600 p-1">
+                  <button onClick={() => excluir(a)} className="text-gray-500 hover:text-red-600 p-1" aria-label="Excluir" title="Excluir">
                     <Trash2 size={17} />
                   </button>
                 )}
@@ -208,9 +208,9 @@ export default function Abastecimentos() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
             {!carregando && abastecimentos.length === 0 && (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">Nenhum abastecimento encontrado.</td></tr>
+              <tr><td colSpan={7} className="text-center py-8 text-gray-500">Nenhum abastecimento encontrado.</td></tr>
             )}
             {!carregando && abastecimentos.map((a) => (
               <tr key={a.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
@@ -221,11 +221,11 @@ export default function Abastecimentos() {
                 <Td>{formatarMoeda(a.valor_total)}</Td>
                 <Td>{a.fornecedor_nome || '—'}</Td>
                 <Td className="text-right">
-                  <button onClick={() => { setEditando(a); setModalAberto(true) }} className="text-gray-400 hover:text-primary mr-3">
+                  <button onClick={() => { setEditando(a); setModalAberto(true) }} className="text-gray-500 hover:text-primary mr-3" aria-label="Editar" title="Editar">
                     <Pencil size={16} />
                   </button>
                   {isAdmin && (
-                    <button onClick={() => excluir(a)} className="text-gray-400 hover:text-red-600">
+                    <button onClick={() => excluir(a)} className="text-gray-500 hover:text-red-600" aria-label="Excluir" title="Excluir">
                       <Trash2 size={16} />
                     </button>
                   )}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import Modal from './Modal'
 
 export default function ExecutarChecklistModal({ maquina, modelo, onClose, onSave }) {
   const usaKm = maquina.tipo === 'carro'
@@ -38,14 +39,14 @@ export default function ExecutarChecklistModal({ maquina, modelo, onClose, onSav
   const temPendencia = respostas.some((r) => !r.ok)
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+    <Modal onClose={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-semibold text-gray-800">{modelo.nome}</h2>
             <p className="text-sm text-gray-500">{maquina.codigo}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600" aria-label="Fechar" title="Fechar">
             <X size={20} />
           </button>
         </div>
@@ -73,14 +74,14 @@ export default function ExecutarChecklistModal({ maquina, modelo, onClose, onSav
                     <button
                       type="button"
                       onClick={() => atualizarResposta(index, 'ok', true)}
-                      className={`px-3 py-1 text-xs rounded-full ${r.ok ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}
+                      className={`px-3 py-1 text-xs rounded-full ${r.ok ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
                     >
                       OK
                     </button>
                     <button
                       type="button"
                       onClick={() => atualizarResposta(index, 'ok', false)}
-                      className={`px-3 py-1 text-xs rounded-full ${!r.ok ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-400'}`}
+                      className={`px-3 py-1 text-xs rounded-full ${!r.ok ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}`}
                     >
                       Pendência
                     </button>
@@ -118,6 +119,6 @@ export default function ExecutarChecklistModal({ maquina, modelo, onClose, onSav
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

@@ -157,9 +157,9 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-400 text-sm">Carregando...</p>}
+        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
         {!carregando && manutencoes.length === 0 && (
-          <p className="text-center py-8 text-gray-400 text-sm">Nenhuma manutenção encontrada.</p>
+          <p className="text-center py-8 text-gray-500 text-sm">Nenhuma manutenção encontrada.</p>
         )}
         {!carregando && (mostrarTodos ? manutencoes : manutencoes.slice(0, 3)).map((m) => (
           <div key={m.id} className="bg-white border border-gray-200 rounded-xl p-4">
@@ -170,7 +170,7 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
                   {m.tipo}
                 </span>
               </div>
-              <span className="text-xs text-gray-400 shrink-0">{formatarData(m.data)}</span>
+              <span className="text-xs text-gray-500 shrink-0">{formatarData(m.data)}</span>
             </div>
             {m.descricao && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{m.descricao}</p>}
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100">
@@ -178,11 +178,11 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
                 {m.custo != null ? formatarMoeda(m.custo) : 'Sem custo informado'}
               </span>
               <div className="flex gap-4">
-                <button onClick={() => { setEditando(m); setModalAberto(true) }} className="text-gray-400 hover:text-primary p-1">
+                <button onClick={() => { setEditando(m); setModalAberto(true) }} className="text-gray-500 hover:text-primary p-1" aria-label="Editar" title="Editar">
                   <Pencil size={17} />
                 </button>
                 {isAdmin && (
-                  <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600 p-1">
+                  <button onClick={() => excluir(m)} className="text-gray-500 hover:text-red-600 p-1" aria-label="Excluir" title="Excluir">
                     <Trash2 size={17} />
                   </button>
                 )}
@@ -210,9 +210,9 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
             {!carregando && manutencoes.length === 0 && (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">Nenhuma manutenção encontrada.</td></tr>
+              <tr><td colSpan={7} className="text-center py-8 text-gray-500">Nenhuma manutenção encontrada.</td></tr>
             )}
             {!carregando && manutencoes.map((m) => (
               <tr key={m.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
@@ -223,11 +223,11 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
                 <Td>{m.horimetro ?? m.km ?? '—'}</Td>
                 <Td>{m.custo != null ? formatarMoeda(m.custo) : '—'}</Td>
                 <Td className="text-right">
-                  <button onClick={() => { setEditando(m); setModalAberto(true) }} className="text-gray-400 hover:text-primary mr-3">
+                  <button onClick={() => { setEditando(m); setModalAberto(true) }} className="text-gray-500 hover:text-primary mr-3" aria-label="Editar" title="Editar">
                     <Pencil size={16} />
                   </button>
                   {isAdmin && (
-                    <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600">
+                    <button onClick={() => excluir(m)} className="text-gray-500 hover:text-red-600" aria-label="Excluir" title="Excluir">
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -319,9 +319,9 @@ function AbaPreventivas({ maquinas, maquinasDisponiveis, fornecedores }) {
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-400 text-sm">Carregando...</p>}
+        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
         {!carregando && preventivas.length === 0 && (
-          <p className="text-center py-8 text-gray-400 text-sm">Nenhum plano de preventiva cadastrado.</p>
+          <p className="text-center py-8 text-gray-500 text-sm">Nenhum plano de preventiva cadastrado.</p>
         )}
         {!carregando && (mostrarTodos ? preventivas : preventivas.slice(0, 3)).map((p) => (
           <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-4">
@@ -332,21 +332,21 @@ function AbaPreventivas({ maquinas, maquinasDisponiveis, fornecedores }) {
                   {labelStatusPreventiva(p.status_calculado)}
                 </span>
               </div>
-              <span className="text-xs text-gray-400 shrink-0 text-right">
+              <span className="text-xs text-gray-500 shrink-0 text-right">
                 {p.proxima_data ? formatarData(p.proxima_data) : '—'}
               </span>
             </div>
             {p.descricao && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{p.descricao}</p>}
             <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100">
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-500">
                 {p.proximo_horimetro != null ? `${p.proximo_horimetro}h` : p.proximo_km != null ? `${p.proximo_km}km` : 'Sem meta de leitura'}
               </span>
               <div className="flex gap-4">
-                <button onClick={() => setConcluindo(p)} className="text-gray-400 hover:text-green-600 p-1" title="Concluir">
+                <button onClick={() => setConcluindo(p)} className="text-gray-500 hover:text-green-600 p-1" title="Concluir">
                   <CheckCircle2 size={17} />
                 </button>
                 {isAdmin && (
-                  <button onClick={() => excluir(p)} className="text-gray-400 hover:text-red-600 p-1">
+                  <button onClick={() => excluir(p)} className="text-gray-500 hover:text-red-600 p-1" aria-label="Excluir" title="Excluir">
                     <Trash2 size={17} />
                   </button>
                 )}
@@ -374,9 +374,9 @@ function AbaPreventivas({ maquinas, maquinasDisponiveis, fornecedores }) {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
             {!carregando && preventivas.length === 0 && (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">Nenhum plano de preventiva cadastrado.</td></tr>
+              <tr><td colSpan={7} className="text-center py-8 text-gray-500">Nenhum plano de preventiva cadastrado.</td></tr>
             )}
             {!carregando && preventivas.map((p) => (
               <tr key={p.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
@@ -391,11 +391,11 @@ function AbaPreventivas({ maquinas, maquinasDisponiveis, fornecedores }) {
                   </span>
                 </Td>
                 <Td className="text-right">
-                  <button onClick={() => setConcluindo(p)} className="text-gray-400 hover:text-green-600 mr-3" title="Concluir">
+                  <button onClick={() => setConcluindo(p)} className="text-gray-500 hover:text-green-600 mr-3" title="Concluir">
                     <CheckCircle2 size={16} />
                   </button>
                   {isAdmin && (
-                    <button onClick={() => excluir(p)} className="text-gray-400 hover:text-red-600">
+                    <button onClick={() => excluir(p)} className="text-gray-500 hover:text-red-600" aria-label="Excluir" title="Excluir">
                       <Trash2 size={16} />
                     </button>
                   )}

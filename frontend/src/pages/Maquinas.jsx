@@ -127,7 +127,7 @@ export default function Maquinas() {
       </div>
 
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
@@ -165,15 +165,15 @@ export default function Maquinas() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={8} className="text-center py-8 text-gray-400">Carregando...</td></tr>
+              <tr><td colSpan={8} className="text-center py-8 text-gray-500">Carregando...</td></tr>
             )}
             {!carregando && maquinas.length === 0 && (
-              <tr><td colSpan={8} className="text-center py-8 text-gray-400">Nenhuma máquina encontrada.</td></tr>
+              <tr><td colSpan={8} className="text-center py-8 text-gray-500">Nenhuma máquina encontrada.</td></tr>
             )}
             {!carregando && maquinas.map((m) => (
               <tr key={m.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
                 <Td>
-                  <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-gray-400">
+                  <div className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded text-gray-500">
                     <ImageOff size={14} />
                   </div>
                 </Td>
@@ -190,10 +190,10 @@ export default function Maquinas() {
                 <Td className="text-right">
                   {isAdmin ? (
                     <>
-                      <button onClick={() => abrirEdicao(m)} className="text-gray-400 hover:text-primary mr-3" title="Editar">
+                      <button onClick={() => abrirEdicao(m)} className="text-gray-500 hover:text-primary mr-3" title="Editar">
                         <Pencil size={16} />
                       </button>
-                      <button onClick={() => excluir(m)} className="text-gray-400 hover:text-red-600 mr-3" title="Marcar como inativa">
+                      <button onClick={() => excluir(m)} className="text-gray-500 hover:text-red-600 mr-3" title="Marcar como inativa">
                         <Trash2 size={16} />
                       </button>
                       <button onClick={() => excluirPermanente(m)} className="text-gray-300 hover:text-red-700" title="Excluir permanentemente (uso restrito a dados de teste)">

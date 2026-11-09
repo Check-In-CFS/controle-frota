@@ -15,6 +15,7 @@ import Relatorios from './pages/Relatorios'
 import Financeiro from './pages/Financeiro'
 import CentralDeLogs from './pages/CentralDeLogs'
 import Usuarios from './pages/Usuarios'
+import NaoEncontrada from './pages/NaoEncontrada'
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="financeiro" element={<Financeiro />} />
               <Route path="usuarios" element={<Usuarios />} />
               <Route path="logs" element={<CentralDeLogs />} />
+              <Route path="*" element={<NaoEncontrada />} />
             </Route>
           </Route>
         </Routes>

@@ -66,7 +66,7 @@ export default function CentralDeLogs() {
 
   if (!isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-20 text-gray-500">
         <ShieldAlert size={40} className="mb-3" />
         <p>Apenas administradores podem acessar a Central de Logs.</p>
       </div>
@@ -82,7 +82,7 @@ export default function CentralDeLogs() {
 
       <div className="flex flex-wrap gap-4 mb-4 items-end">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
@@ -130,10 +130,10 @@ export default function CentralDeLogs() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-400">Carregando...</td></tr>
+              <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>
             )}
             {!carregando && logs.length === 0 && (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-400">Nenhum registro encontrado para os filtros selecionados.</td></tr>
+              <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum registro encontrado para os filtros selecionados.</td></tr>
             )}
             {!carregando && logs.map((log) => (
               <tr
@@ -156,7 +156,7 @@ export default function CentralDeLogs() {
         </table>
       </div>
       {!carregando && logs.length >= 200 && (
-        <p className="text-xs text-gray-400 mt-2">Mostrando os 200 registros mais recentes. Use os filtros para refinar a busca.</p>
+        <p className="text-xs text-gray-500 mt-2">Mostrando os 200 registros mais recentes. Use os filtros para refinar a busca.</p>
       )}
 
       {visualizando && (

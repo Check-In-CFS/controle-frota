@@ -82,7 +82,7 @@ export default function Fornecedores() {
       </div>
 
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
@@ -107,10 +107,10 @@ export default function Fornecedores() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={6} className="text-center py-8 text-gray-400">Carregando...</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-500">Carregando...</td></tr>
             )}
             {!carregando && fornecedores.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-8 text-gray-400">Nenhum fornecedor encontrado.</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-500">Nenhum fornecedor encontrado.</td></tr>
             )}
             {!carregando && fornecedores.map((f) => (
               <tr key={f.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
@@ -120,11 +120,11 @@ export default function Fornecedores() {
                 <td className="px-4 py-3">{f.email || '—'}</td>
                 <td className="px-4 py-3">{f.contato || '—'}</td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => abrirEdicao(f)} className="text-gray-400 hover:text-primary mr-3">
+                  <button onClick={() => abrirEdicao(f)} className="text-gray-500 hover:text-primary mr-3" aria-label="Editar" title="Editar">
                     <Pencil size={16} />
                   </button>
                   {isAdmin && (
-                    <button onClick={() => excluir(f)} className="text-gray-400 hover:text-red-600">
+                    <button onClick={() => excluir(f)} className="text-gray-500 hover:text-red-600" aria-label="Excluir" title="Excluir">
                       <Trash2 size={16} />
                     </button>
                   )}

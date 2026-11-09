@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { labelEntidade, labelAcao } from '../services/logs'
+import Modal from './Modal'
 
 // Campos que nunca fazem sentido mostrar na comparação (ruído técnico/interno)
 const CAMPOS_OCULTOS = new Set([
@@ -120,25 +121,25 @@ export default function LogDetalheModal({ log, onClose }) {
         </table>
       </div>
     ) : (
-      <p className="text-sm text-gray-400">Nenhum campo visível foi alterado neste registro.</p>
+      <p className="text-sm text-gray-500">Nenhum campo visível foi alterado neste registro.</p>
     )
   } else if ((log.acao === 'criar' || log.acao === 'ativar') && temDepois) {
     conteudo = <ListaCampos titulo="Dados cadastrados" dados={log.dados_depois} />
   } else if ((log.acao === 'excluir' || log.acao === 'excluir_permanente' || log.acao === 'desativar') && temAntes) {
     conteudo = <ListaCampos titulo="Dados no momento da exclusão" dados={log.dados_antes} />
   } else {
-    conteudo = <p className="text-sm text-gray-400">Não há detalhamento adicional para este registro.</p>
+    conteudo = <p className="text-sm text-gray-500">Não há detalhamento adicional para este registro.</p>
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+    <Modal onClose={onClose} fecharAoClicarFora>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-semibold text-gray-800">{labelAcao(log.acao)} · {labelEntidade(log.entidade)}</h2>
             <p className="text-sm text-gray-500 mt-0.5">{log.descricao}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 shrink-0 ml-4">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600 shrink-0 ml-4" aria-label="Fechar" title="Fechar">
             <X size={20} />
           </button>
         </div>
@@ -151,7 +152,7 @@ export default function LogDetalheModal({ log, onClose }) {
           {conteudo}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 

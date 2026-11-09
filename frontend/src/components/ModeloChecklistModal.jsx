@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { TIPOS_MAQUINA } from '../services/maquinas'
+import Modal from './Modal'
 
 export default function ModeloChecklistModal({ onClose, onSave }) {
   const [nome, setNome] = useState('')
@@ -42,11 +43,11 @@ export default function ModeloChecklistModal({ onClose, onSave }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+    <Modal onClose={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800">Novo Modelo de Checklist</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600" aria-label="Fechar" title="Fechar">
             <X size={20} />
           </button>
         </div>
@@ -95,7 +96,7 @@ export default function ModeloChecklistModal({ onClose, onSave }) {
                     Obrigatório
                   </label>
                   {itens.length > 1 && (
-                    <button type="button" onClick={() => removerItem(index)} className="text-gray-400 hover:text-red-600 shrink-0">
+                    <button type="button" onClick={() => removerItem(index)} className="text-gray-500 hover:text-red-600 shrink-0" aria-label="Excluir" title="Excluir">
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -125,6 +126,6 @@ export default function ModeloChecklistModal({ onClose, onSave }) {
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

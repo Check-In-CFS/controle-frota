@@ -126,7 +126,7 @@ export default function NotasFiscais() {
       </div>
 
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
@@ -168,9 +168,9 @@ export default function NotasFiscais() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={8} className="text-center py-8 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={8} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
             {!carregando && notas.length === 0 && (
-              <tr><td colSpan={8} className="text-center py-8 text-gray-400">Nenhuma nota fiscal encontrada.</td></tr>
+              <tr><td colSpan={8} className="text-center py-8 text-gray-500">Nenhuma nota fiscal encontrada.</td></tr>
             )}
             {!carregando && notas.map((n) => (
               <tr
@@ -188,7 +188,7 @@ export default function NotasFiscais() {
                 <Td className="text-right">
                   <button
                     onClick={(e) => { e.stopPropagation(); setEditando(n); setModalAberto(true) }}
-                    className="text-gray-400 hover:text-primary mr-3"
+                    className="text-gray-500 hover:text-primary mr-3"
                     title="Editar"
                   >
                     <Pencil size={16} />
@@ -196,7 +196,7 @@ export default function NotasFiscais() {
                   {isAdmin && (
                     <button
                       onClick={(e) => { e.stopPropagation(); excluir(n) }}
-                      className="text-gray-400 hover:text-red-600"
+                      className="text-gray-500 hover:text-red-600"
                       title="Excluir"
                     >
                       <Trash2 size={16} />

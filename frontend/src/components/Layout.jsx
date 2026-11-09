@@ -82,7 +82,7 @@ export default function Layout() {
             <Truck className="text-primary" size={24} />
             <span className="font-semibold text-gray-800">Controle de Frota</span>
           </div>
-          <button onClick={fecharMenu} className="md:hidden text-gray-400 hover:text-gray-600">
+          <button onClick={fecharMenu} className="md:hidden text-gray-500 hover:text-gray-600" aria-label="Fechar" title="Fechar">
             <X size={22} />
           </button>
         </div>
@@ -112,7 +112,7 @@ export default function Layout() {
         <div className="px-3 py-4 border-t border-gray-100">
           <div className="px-3 py-2 mb-1">
             <p className="text-sm font-medium text-gray-700 truncate">{auth?.nome}</p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               {LABEL_PAPEL[auth?.papel] || auth?.papel}
             </p>
           </div>
@@ -129,7 +129,7 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Barra superior, só aparece no mobile */}
         <div className="md:hidden flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shrink-0">
-          <button onClick={() => setMenuAberto(true)} className="text-gray-500 hover:text-gray-700">
+          <button onClick={() => setMenuAberto(true)} className="text-gray-500 hover:text-gray-700" aria-label="Abrir menu" title="Abrir menu">
             <Menu size={22} />
           </button>
           <Truck className="text-primary" size={20} />

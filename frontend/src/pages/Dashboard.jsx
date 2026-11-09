@@ -73,7 +73,7 @@ export default function Dashboard() {
       </p>
 
       {erro && <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">{erro}</div>}
-      {carregando && <p className="text-gray-400">Carregando...</p>}
+      {carregando && <p className="text-gray-500">Carregando...</p>}
 
       {/* ---------- Atalhos rápidos ---------- */}
       {/* Diretor tem acesso só de visualização -- não faz sentido oferecer atalhos de criação */}
@@ -105,7 +105,7 @@ export default function Dashboard() {
             <AlertTriangle size={16} className="text-orange-500" /> Alertas Operacionais
           </h3>
           {alertas.length === 0 ? (
-            <p className="text-center text-gray-400 py-10">Nenhum alerta no momento. Tudo em dia! 🎉</p>
+            <p className="text-center text-gray-500 py-10">Nenhum alerta no momento. Tudo em dia! 🎉</p>
           ) : (
             <div className="space-y-2">
               {alertas.map((a, i) => (
@@ -125,7 +125,7 @@ export default function Dashboard() {
             </Link>
           </div>
           {topCustos.length === 0 ? (
-            <p className="text-center text-gray-400 py-10 text-sm">Sem custos este mês.</p>
+            <p className="text-center text-gray-500 py-10 text-sm">Sem custos este mês.</p>
           ) : (
             <div className="space-y-2">
               {topCustos.map((m, i) => (
@@ -144,7 +144,7 @@ export default function Dashboard() {
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-medium text-gray-700 mb-4">Frota por Situação</h3>
           {frotaPorSituacao.length === 0 ? (
-            <p className="text-center text-gray-400 py-16">Nenhuma máquina cadastrada.</p>
+            <p className="text-center text-gray-500 py-16">Nenhuma máquina cadastrada.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -163,7 +163,7 @@ export default function Dashboard() {
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-medium text-gray-700 mb-4">Frota por Tipo</h3>
           {frotaPorTipo.length === 0 ? (
-            <p className="text-center text-gray-400 py-16">Nenhuma máquina cadastrada.</p>
+            <p className="text-center text-gray-500 py-16">Nenhuma máquina cadastrada.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -185,7 +185,7 @@ export default function Dashboard() {
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-medium text-gray-700 mb-4">Custos ao Longo do Tempo (últimos 6 meses)</h3>
           {custosPorMes.every((c) => c.total === 0) ? (
-            <p className="text-center text-gray-400 py-16">Nenhum custo registrado no período.</p>
+            <p className="text-center text-gray-500 py-16">Nenhum custo registrado no período.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={custosPorMes}>
@@ -202,7 +202,7 @@ export default function Dashboard() {
         <div className="bg-white border border-gray-200 rounded-xl p-5">
           <h3 className="font-medium text-gray-700 mb-4">Custos por Categoria (últimos 6 meses)</h3>
           {custosPorCategoria.every((c) => c.total === 0) ? (
-            <p className="text-center text-gray-400 py-16">Nenhum custo registrado no período.</p>
+            <p className="text-center text-gray-500 py-16">Nenhum custo registrado no período.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={custosPorCategoria}>

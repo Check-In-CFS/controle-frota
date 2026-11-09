@@ -41,14 +41,14 @@ export function DialogoProvider({ children }) {
     <DialogoContext.Provider value={{ confirmar, alertar }}>
       {children}
       {estado && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4">
+        <div role="alertdialog" aria-modal="true" aria-labelledby="dialogo-titulo" className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-start gap-3 mb-5">
               <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${estado.perigo ? 'bg-red-100' : 'bg-indigo-100'}`}>
                 {estado.perigo ? <AlertTriangle size={20} className="text-red-600" /> : <Info size={20} className="text-primary" />}
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800">{estado.titulo}</h3>
+                <h3 id="dialogo-titulo" className="font-semibold text-gray-800">{estado.titulo}</h3>
                 {estado.mensagem && <p className="text-sm text-gray-600 mt-1">{estado.mensagem}</p>}
               </div>
             </div>

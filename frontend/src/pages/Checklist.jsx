@@ -96,7 +96,7 @@ export default function Checklist() {
               {m.codigo}
             </button>
           ))}
-          {maquinasDisponiveis.length === 0 && <p className="text-sm text-gray-400">Nenhuma máquina disponível para checklist no momento.</p>}
+          {maquinasDisponiveis.length === 0 && <p className="text-sm text-gray-500">Nenhuma máquina disponível para checklist no momento.</p>}
         </div>
       </div>
 
@@ -111,16 +111,16 @@ export default function Checklist() {
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-400 text-sm">Carregando...</p>}
+        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
         {!carregando && execucoes.length === 0 && (
-          <p className="text-center py-8 text-gray-400 text-sm">Nenhum checklist registrado ainda.</p>
+          <p className="text-center py-8 text-gray-500 text-sm">Nenhum checklist registrado ainda.</p>
         )}
         {!carregando && (mostrarTodos ? execucoes : execucoes.slice(0, 3)).map((e) => (
           <div key={e.id} className="bg-white border border-gray-200 rounded-xl p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-semibold text-gray-800">{e.maquina_codigo}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{e.operador || 'Operador não informado'}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{e.operador || 'Operador não informado'}</p>
               </div>
               {e.tem_pendencia ? (
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-red-700 bg-red-100 px-2 py-0.5 rounded-full shrink-0">
@@ -156,9 +156,9 @@ export default function Checklist() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={5} className="text-center py-8 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
             {!carregando && execucoes.length === 0 && (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-400">Nenhum checklist registrado ainda.</td></tr>
+              <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum checklist registrado ainda.</td></tr>
             )}
             {!carregando && execucoes.map((e) => (
               <tr key={e.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">

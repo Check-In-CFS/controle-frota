@@ -80,7 +80,7 @@ function AbaVisaoGeral() {
       <SeletorPeriodo dataInicio={dataInicio} dataFim={dataFim} onChangeInicio={setDataInicio} onChangeFim={setDataFim} />
 
       {carregando ? (
-        <p className="text-gray-400 text-sm mt-6">Carregando...</p>
+        <p className="text-gray-500 text-sm mt-6">Carregando...</p>
       ) : dados && (
         <div className="mt-6 border border-gray-200 rounded-xl divide-y divide-gray-100">
           <LinhaResumo label="Manutenção" valor={formatarMoeda(dados.manutencao)} />
@@ -91,7 +91,7 @@ function AbaVisaoGeral() {
           <LinhaResumo label="Custo médio por máquina" valor={formatarMoeda(dados.custo_medio_por_maquina)} />
         </div>
       )}
-      <p className="text-xs text-gray-400 mt-3">
+      <p className="text-xs text-gray-500 mt-3">
         Para o detalhamento por máquina, por mês ou comparações, use as abas acima.
       </p>
     </div>
@@ -202,9 +202,9 @@ function AbaCentrosDespesa() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={3} className="text-center py-6 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={3} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
             {!carregando && centros.length === 0 && (
-              <tr><td colSpan={3} className="text-center py-6 text-gray-400">Nenhum centro de despesa cadastrado.</td></tr>
+              <tr><td colSpan={3} className="text-center py-6 text-gray-500">Nenhum centro de despesa cadastrado.</td></tr>
             )}
             {!carregando && centros.map((c) => (
               <tr key={c.id} className="border-t border-gray-100">
@@ -231,20 +231,20 @@ function AbaCentrosDespesa() {
                     {editandoId === c.id ? (
                       <>
                         <button onClick={() => salvarEdicao(c.id)} className="text-primary text-xs font-medium mr-3">Salvar</button>
-                        <button onClick={() => setEditandoId(null)} className="text-gray-400 text-xs">Cancelar</button>
+                        <button onClick={() => setEditandoId(null)} className="text-gray-500 text-xs">Cancelar</button>
                       </>
                     ) : (
                       <>
                         <button
                           onClick={() => { setEditandoId(c.id); setEditandoNome(c.nome) }}
-                          className="text-gray-400 hover:text-primary mr-3"
+                          className="text-gray-500 hover:text-primary mr-3"
                           title="Editar nome"
                         >
                           <Pencil size={15} />
                         </button>
                         <button
                           onClick={() => alternarSituacao(c)}
-                          className={`hover:text-primary ${c.ativo ? 'text-gray-400' : 'text-green-600'}`}
+                          className={`hover:text-primary ${c.ativo ? 'text-gray-500' : 'text-green-600'}`}
                           title={c.ativo ? 'Desativar' : 'Ativar'}
                         >
                           <Power size={15} />
@@ -309,9 +309,9 @@ function AbaCustoPorMaquina() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={6} className="text-center py-6 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={6} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
             {!carregando && linhas.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-6 text-gray-400">Nenhum custo no período selecionado.</td></tr>
+              <tr><td colSpan={6} className="text-center py-6 text-gray-500">Nenhum custo no período selecionado.</td></tr>
             )}
             {!carregando && linhas.map((l) => (
               <tr key={l.maquina_id ?? 'sem-maquina'} className="border-t border-gray-100">
@@ -371,7 +371,7 @@ function AbaCustoPorMes() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={5} className="text-center py-6 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={5} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
             {!carregando && linhas.map((l) => (
               <tr key={l.mes} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 font-medium text-gray-700">{NOMES_MESES[l.mes - 1]}</td>
@@ -541,7 +541,7 @@ function ComparacaoCentros() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={3} className="text-center py-6 text-gray-400">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={3} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
             {!carregando && linhas.map((l) => (
               <tr key={l.centro_despesa_id ?? 'sem-centro'} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 font-medium text-gray-700">{l.nome}</td>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import Modal from './Modal'
 
 export default function ConcluirPreventivaModal({ plano, fornecedores, onClose, onConcluir }) {
   const [form, setForm] = useState({
@@ -48,14 +49,14 @@ export default function ConcluirPreventivaModal({ plano, fornecedores, onClose, 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+    <Modal onClose={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-semibold text-gray-800">Concluir Preventiva</h2>
             <p className="text-sm text-gray-500">{plano.maquina_codigo} — {plano.descricao}</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600" aria-label="Fechar" title="Fechar">
             <X size={20} />
           </button>
         </div>
@@ -149,7 +150,7 @@ export default function ConcluirPreventivaModal({ plano, fornecedores, onClose, 
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }
 

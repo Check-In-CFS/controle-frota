@@ -3,6 +3,7 @@ import { X, Plus, Trash2, Upload, FileCheck2 } from 'lucide-react'
 import { TIPOS_NOTA, importarXmlNotaFiscal, extrairMensagemErro } from '../services/notasFiscais'
 import { api } from '../services/api'
 import FornecedorModal from './FornecedorModal'
+import Modal from './Modal'
 
 const VAZIO = {
   numero: '',
@@ -179,13 +180,13 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+    <Modal onClose={onClose}>
       <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800">
             {nota ? 'Editar Nota Fiscal' : 'Nova Nota Fiscal'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-600" aria-label="Fechar" title="Fechar">
             <X size={20} />
           </button>
         </div>
@@ -201,7 +202,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
           <div className="p-6 space-y-4">
             {erro && <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{erro}</div>}
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
-              <Upload className="mx-auto text-gray-400 mb-3" size={32} />
+              <Upload className="mx-auto text-gray-500 mb-3" size={32} />
               <p className="text-sm text-gray-600 mb-3">
                 Selecione o arquivo XML da NF-e. Os campos serão preenchidos automaticamente,
                 incluindo os itens e o fornecedor (criado automaticamente se ainda não existir).
@@ -377,7 +378,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
                             {formatarMoeda((Number(item.quantidade) || 0) * (Number(item.valor_unitario) || 0))}
                           </td>
                           <td className="px-3 py-1.5">
-                            <button type="button" onClick={() => removerItem(i)} className="text-gray-400 hover:text-red-600">
+                            <button type="button" onClick={() => removerItem(i)} className="text-gray-500 hover:text-red-600" aria-label="Excluir" title="Excluir">
                               <Trash2 size={14} />
                             </button>
                           </td>
@@ -416,7 +417,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
                   </label>
                 ))}
               </div>
-              <p className="text-xs text-gray-400 mt-1">Deixe em branco se a nota não for de peça/serviço vinculado a máquina específica.</p>
+              <p className="text-xs text-gray-500 mt-1">Deixe em branco se a nota não for de peça/serviço vinculado a máquina específica.</p>
             </div>
 
             <Campo label="Observações">
@@ -452,7 +453,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
           onSave={salvarNovoFornecedor}
         />
       )}
-    </div>
+    </Modal>
   )
 }
 

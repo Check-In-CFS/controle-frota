@@ -31,7 +31,7 @@ export default function Usuarios() {
 
   if (!isAdmin) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-20 text-gray-500">
         <ShieldAlert size={40} className="mb-3" />
         <p>Apenas administradores podem gerenciar usuários.</p>
       </div>
@@ -95,7 +95,7 @@ export default function Usuarios() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-400">Carregando...</td></tr>
+              <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>
             )}
             {!carregando && usuarios.map((u) => (
               <tr key={u.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">
@@ -116,11 +116,11 @@ export default function Usuarios() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => { setEditando(u); setModalAberto(true) }} className="text-gray-400 hover:text-primary mr-3">
+                  <button onClick={() => { setEditando(u); setModalAberto(true) }} className="text-gray-500 hover:text-primary mr-3" aria-label="Editar" title="Editar">
                     <Pencil size={16} />
                   </button>
                   {u.id !== auth.id && (
-                    <button onClick={() => excluir(u)} className="text-gray-400 hover:text-red-600">
+                    <button onClick={() => excluir(u)} className="text-gray-500 hover:text-red-600" aria-label="Excluir" title="Excluir">
                       <Trash2 size={16} />
                     </button>
                   )}
