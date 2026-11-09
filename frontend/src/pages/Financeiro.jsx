@@ -356,7 +356,7 @@ function AbaCustoPorMes() {
     <div>
       <label className="flex flex-col gap-1 mb-4 w-32">
         <span className="text-xs text-gray-500">Ano</span>
-        <input type="number" value={ano} onChange={(e) => setAno(Number(e.target.value))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+        <input type="number" inputMode="numeric" value={ano} onChange={(e) => setAno(Number(e.target.value))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
       </label>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">

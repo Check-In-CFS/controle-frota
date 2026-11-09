@@ -106,7 +106,7 @@ export default function ConcluirPreventivaModal({ plano, fornecedores, onClose, 
             {plano.intervalo_horimetro != null && (
               <Campo label="Horímetro atual *">
                 <input
-                  type="number"
+                  type="number" inputMode="decimal"
                   step="0.1"
                   value={form.horimetro}
                   onChange={(e) => atualizarCampo('horimetro', e.target.value)}
@@ -117,7 +117,7 @@ export default function ConcluirPreventivaModal({ plano, fornecedores, onClose, 
             {plano.intervalo_km != null && (
               <Campo label="Km atual *">
                 <input
-                  type="number"
+                  type="number" inputMode="decimal"
                   step="0.1"
                   value={form.km}
                   onChange={(e) => atualizarCampo('km', e.target.value)}
@@ -127,7 +127,7 @@ export default function ConcluirPreventivaModal({ plano, fornecedores, onClose, 
             )}
             <Campo label="Custo (R$)">
               <input
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.01"
                 value={form.custo}
                 onChange={(e) => atualizarCampo('custo', e.target.value)}

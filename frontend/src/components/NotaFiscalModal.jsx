@@ -356,7 +356,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
                           </td>
                           <td className="px-3 py-1.5">
                             <input
-                              type="number"
+                              type="number" inputMode="decimal"
                               step="0.01"
                               min="0.01"
                               value={item.quantidade}
@@ -366,7 +366,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
                           </td>
                           <td className="px-3 py-1.5">
                             <input
-                              type="number"
+                              type="number" inputMode="decimal"
                               step="0.01"
                               min="0"
                               value={item.valor_unitario}
@@ -394,7 +394,7 @@ export default function NotaFiscalModal({ nota, maquinas, fornecedores, centrosD
               <input
                 required={!usaItensParaTotal}
                 disabled={usaItensParaTotal}
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.01"
                 value={usaItensParaTotal ? totalItens.toFixed(2) : form.valor_total}
                 onChange={(e) => atualizarCampo('valor_total', e.target.value)}

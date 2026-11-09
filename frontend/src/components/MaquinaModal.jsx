@@ -159,7 +159,7 @@ export default function MaquinaModal({ maquina, onClose, onSave }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Ano">
               <input
-                type="number"
+                type="number" inputMode="numeric"
                 value={form.ano}
                 onChange={(e) => atualizarCampo('ano', e.target.value)}
                 min={ANO_MINIMO}

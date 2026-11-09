@@ -91,7 +91,7 @@ export default function PreventivaModal({ maquinas, onClose, onSave }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Campo label="A cada (horas)">
               <input
-                type="number"
+                type="number" inputMode="numeric"
                 value={form.intervalo_horimetro}
                 onChange={(e) => atualizarCampo('intervalo_horimetro', e.target.value)}
                 className="input"
@@ -99,7 +99,7 @@ export default function PreventivaModal({ maquinas, onClose, onSave }) {
             </Campo>
             <Campo label="A cada (km)">
               <input
-                type="number"
+                type="number" inputMode="numeric"
                 value={form.intervalo_km}
                 onChange={(e) => atualizarCampo('intervalo_km', e.target.value)}
                 className="input"
@@ -107,7 +107,7 @@ export default function PreventivaModal({ maquinas, onClose, onSave }) {
             </Campo>
             <Campo label="A cada (dias)">
               <input
-                type="number"
+                type="number" inputMode="numeric"
                 value={form.intervalo_dias}
                 onChange={(e) => atualizarCampo('intervalo_dias', e.target.value)}
                 className="input"

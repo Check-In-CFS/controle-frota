@@ -155,7 +155,7 @@ export default function ManutencaoModal({ manutencao, maquinas, fornecedores, on
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Campo label="Horímetro">
               <input
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.1"
                 value={form.horimetro}
                 onChange={(e) => atualizarCampo('horimetro', e.target.value)}
@@ -164,7 +164,7 @@ export default function ManutencaoModal({ manutencao, maquinas, fornecedores, on
             </Campo>
             <Campo label="Km">
               <input
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.1"
                 value={form.km}
                 onChange={(e) => atualizarCampo('km', e.target.value)}
@@ -173,7 +173,7 @@ export default function ManutencaoModal({ manutencao, maquinas, fornecedores, on
             </Campo>
             <Campo label="Custo (R$)">
               <input
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.01"
                 value={form.custo}
                 onChange={(e) => atualizarCampo('custo', e.target.value)}

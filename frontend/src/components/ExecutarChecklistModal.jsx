@@ -61,7 +61,7 @@ export default function ExecutarChecklistModal({ maquina, modelo, onClose, onSav
             </label>
             <label className="block">
               <span className="block text-sm text-gray-600 mb-1">{usaKm ? 'Km atual' : 'Horímetro atual'}</span>
-              <input type="number" step="0.1" value={leitura} onChange={(e) => setLeitura(e.target.value)} className="input" />
+              <input type="number" inputMode="decimal" step="0.1" value={leitura} onChange={(e) => setLeitura(e.target.value)} className="input" />
             </label>
           </div>
 

@@ -157,7 +157,7 @@ export default function AbastecimentoModal({ abastecimento, maquinas, fornecedor
             <Campo label={`Quantidade (${unidadeQuantidade(form.tipo_combustivel)}) *`}>
               <input
                 required
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.01"
                 value={form.quantidade}
                 onChange={(e) => atualizarCampo('quantidade', e.target.value)}
@@ -167,7 +167,7 @@ export default function AbastecimentoModal({ abastecimento, maquinas, fornecedor
             <Campo label="Valor Total (R$) *">
               <input
                 required
-                type="number"
+                type="number" inputMode="decimal"
                 step="0.01"
                 value={form.valor_total}
                 onChange={(e) => atualizarCampo('valor_total', e.target.value)}
@@ -178,7 +178,7 @@ export default function AbastecimentoModal({ abastecimento, maquinas, fornecedor
 
           <Campo label={usaKm ? 'Km no momento' : 'Horímetro no momento'}>
             <input
-              type="number"
+              type="number" inputMode="decimal"
               step="0.1"
               value={usaKm ? form.km : form.horimetro}
               onChange={(e) => atualizarCampo(usaKm ? 'km' : 'horimetro', e.target.value)}
