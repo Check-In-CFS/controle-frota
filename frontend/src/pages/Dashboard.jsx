@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 import { api } from '../services/api'
 import { useAuth } from '../services/auth'
+import Carregando from '../components/Carregando'
 
 const NOMES_MES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
@@ -73,7 +74,7 @@ export default function Dashboard() {
       </p>
 
       {erro && <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-4">{erro}</div>}
-      {carregando && <p className="text-gray-500">Carregando...</p>}
+      {carregando && <Carregando />}
 
       {/* ---------- Atalhos rápidos ---------- */}
       {/* Diretor tem acesso só de visualização -- não faz sentido oferecer atalhos de criação */}

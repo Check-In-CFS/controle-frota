@@ -7,6 +7,7 @@ import ExecutarChecklistModal from '../components/ExecutarChecklistModal'
 import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 export default function Checklist() {
   const { isDiretor } = useAuth()
@@ -111,7 +112,7 @@ export default function Checklist() {
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
+        {carregando && <Carregando />}
         {!carregando && execucoes.length === 0 && (
           <p className="text-center py-8 text-gray-500 text-sm">Nenhum checklist registrado ainda.</p>
         )}
@@ -156,7 +157,7 @@ export default function Checklist() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={5}><Carregando linhas={4} /></td></tr>}
             {!carregando && execucoes.length === 0 && (
               <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum checklist registrado ainda.</td></tr>
             )}

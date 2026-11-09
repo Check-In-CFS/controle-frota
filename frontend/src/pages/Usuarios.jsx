@@ -4,6 +4,7 @@ import { api } from '../services/api'
 import { useAuth } from '../services/auth'
 import UsuarioModal from '../components/UsuarioModal'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 export default function Usuarios() {
   const { isAdmin, auth } = useAuth()
@@ -95,7 +96,7 @@ export default function Usuarios() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>
+              <tr><td colSpan={5}><Carregando linhas={4} /></td></tr>
             )}
             {!carregando && usuarios.map((u) => (
               <tr key={u.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50">

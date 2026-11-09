@@ -22,6 +22,7 @@ import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
 import ConcluirPreventivaModal from '../components/ConcluirPreventivaModal'
+import Carregando from '../components/Carregando'
 
 const BADGE_STATUS_PREVENTIVA = {
   vencida: 'bg-red-100 text-red-700',
@@ -157,7 +158,7 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
+        {carregando && <Carregando />}
         {!carregando && manutencoes.length === 0 && (
           <p className="text-center py-8 text-gray-500 text-sm">Nenhuma manutenção encontrada.</p>
         )}
@@ -210,7 +211,7 @@ function AbaManutencoes({ maquinas, maquinasDisponiveis, fornecedores, abrirAoMo
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={7}><Carregando linhas={4} /></td></tr>}
             {!carregando && manutencoes.length === 0 && (
               <tr><td colSpan={7} className="text-center py-8 text-gray-500">Nenhuma manutenção encontrada.</td></tr>
             )}
@@ -319,7 +320,7 @@ function AbaPreventivas({ maquinas, maquinasDisponiveis, fornecedores }) {
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
+        {carregando && <Carregando />}
         {!carregando && preventivas.length === 0 && (
           <p className="text-center py-8 text-gray-500 text-sm">Nenhum plano de preventiva cadastrado.</p>
         )}
@@ -374,7 +375,7 @@ function AbaPreventivas({ maquinas, maquinasDisponiveis, fornecedores }) {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={7}><Carregando linhas={4} /></td></tr>}
             {!carregando && preventivas.length === 0 && (
               <tr><td colSpan={7} className="text-center py-8 text-gray-500">Nenhum plano de preventiva cadastrado.</td></tr>
             )}

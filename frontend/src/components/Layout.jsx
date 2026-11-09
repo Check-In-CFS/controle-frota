@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '../services/auth'
+import Carregando from './Carregando'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, ocultarPara: ['mecanico'] },
@@ -143,7 +144,9 @@ export default function Layout() {
             </div>
           )}
           <div className="flex-1 p-4 sm:p-6 md:p-8">
-            <Outlet />
+            <Suspense fallback={<Carregando linhas={5} />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>

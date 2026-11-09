@@ -17,6 +17,7 @@ import AbastecimentoModal from '../components/AbastecimentoModal'
 import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 export default function Abastecimentos() {
   const { isAdmin, isDiretor } = useAuth()
@@ -155,7 +156,7 @@ export default function Abastecimentos() {
 
       {/* Cartões -- só no mobile, um registro por bloco com o essencial */}
       <div className="md:hidden space-y-3">
-        {carregando && <p className="text-center py-8 text-gray-500 text-sm">Carregando...</p>}
+        {carregando && <Carregando />}
         {!carregando && abastecimentos.length === 0 && (
           <p className="text-center py-8 text-gray-500 text-sm">Nenhum abastecimento encontrado.</p>
         )}
@@ -208,7 +209,7 @@ export default function Abastecimentos() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={7} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={7}><Carregando linhas={4} /></td></tr>}
             {!carregando && abastecimentos.length === 0 && (
               <tr><td colSpan={7} className="text-center py-8 text-gray-500">Nenhum abastecimento encontrado.</td></tr>
             )}

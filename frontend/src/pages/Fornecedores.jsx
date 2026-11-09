@@ -5,6 +5,7 @@ import FornecedorModal from '../components/FornecedorModal'
 import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 export default function Fornecedores() {
   const { isAdmin, isDiretor, isMecanico } = useAuth()
@@ -107,7 +108,7 @@ export default function Fornecedores() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={6} className="text-center py-8 text-gray-500">Carregando...</td></tr>
+              <tr><td colSpan={6}><Carregando linhas={4} /></td></tr>
             )}
             {!carregando && fornecedores.length === 0 && (
               <tr><td colSpan={6} className="text-center py-8 text-gray-500">Nenhum fornecedor encontrado.</td></tr>

@@ -1,22 +1,24 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './services/auth'
 import { DialogoProvider } from './components/DialogoProvider'
 import Toaster from './components/Toaster'
 import RotaProtegida from './components/RotaProtegida'
 import Layout from './components/Layout'
+import Carregando from './components/Carregando'
 import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Maquinas from './pages/Maquinas'
-import Fornecedores from './pages/Fornecedores'
-import Manutencoes from './pages/Manutencoes'
-import Abastecimentos from './pages/Abastecimentos'
-import NotasFiscais from './pages/NotasFiscais'
-import Checklist from './pages/Checklist'
-import Relatorios from './pages/Relatorios'
-import Financeiro from './pages/Financeiro'
-import CentralDeLogs from './pages/CentralDeLogs'
-import Usuarios from './pages/Usuarios'
-import NaoEncontrada from './pages/NaoEncontrada'
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Maquinas = lazy(() => import('./pages/Maquinas'))
+const Fornecedores = lazy(() => import('./pages/Fornecedores'))
+const Manutencoes = lazy(() => import('./pages/Manutencoes'))
+const Abastecimentos = lazy(() => import('./pages/Abastecimentos'))
+const NotasFiscais = lazy(() => import('./pages/NotasFiscais'))
+const Checklist = lazy(() => import('./pages/Checklist'))
+const Relatorios = lazy(() => import('./pages/Relatorios'))
+const Financeiro = lazy(() => import('./pages/Financeiro'))
+const CentralDeLogs = lazy(() => import('./pages/CentralDeLogs'))
+const Usuarios = lazy(() => import('./pages/Usuarios'))
+const NaoEncontrada = lazy(() => import('./pages/NaoEncontrada'))
 
 export default function App() {
   return (

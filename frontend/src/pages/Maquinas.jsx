@@ -14,6 +14,7 @@ import MaquinaModal from '../components/MaquinaModal'
 import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 const BADGE_SITUACAO = {
   ativa: 'bg-green-100 text-green-700',
@@ -165,7 +166,7 @@ export default function Maquinas() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={8} className="text-center py-8 text-gray-500">Carregando...</td></tr>
+              <tr><td colSpan={8}><Carregando linhas={4} /></td></tr>
             )}
             {!carregando && maquinas.length === 0 && (
               <tr><td colSpan={8} className="text-center py-8 text-gray-500">Nenhuma máquina encontrada.</td></tr>

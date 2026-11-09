@@ -10,6 +10,7 @@ import {
 } from '../services/logs'
 import { useAuth } from '../services/auth'
 import LogDetalheModal from '../components/LogDetalheModal'
+import Carregando from '../components/Carregando'
 
 const BADGE_ACAO = {
   criar: 'bg-green-100 text-green-700',
@@ -130,7 +131,7 @@ export default function CentralDeLogs() {
           </thead>
           <tbody>
             {carregando && (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>
+              <tr><td colSpan={5}><Carregando linhas={4} /></td></tr>
             )}
             {!carregando && logs.length === 0 && (
               <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum registro encontrado para os filtros selecionados.</td></tr>

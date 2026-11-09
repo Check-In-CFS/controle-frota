@@ -14,6 +14,7 @@ import {
 import { listarCentrosDespesa, criarCentroDespesa } from '../services/maquinas'
 import { useAuth } from '../services/auth'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 const HOJE = new Date()
 const INICIO_MES = new Date(HOJE.getFullYear(), HOJE.getMonth(), 1).toISOString().slice(0, 10)
@@ -80,7 +81,7 @@ function AbaVisaoGeral() {
       <SeletorPeriodo dataInicio={dataInicio} dataFim={dataFim} onChangeInicio={setDataInicio} onChangeFim={setDataFim} />
 
       {carregando ? (
-        <p className="text-gray-500 text-sm mt-6">Carregando...</p>
+        <Carregando />
       ) : dados && (
         <div className="mt-6 border border-gray-200 rounded-xl divide-y divide-gray-100">
           <LinhaResumo label="Manutenção" valor={formatarMoeda(dados.manutencao)} />
@@ -202,7 +203,7 @@ function AbaCentrosDespesa() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={3} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={3}><Carregando linhas={4} /></td></tr>}
             {!carregando && centros.length === 0 && (
               <tr><td colSpan={3} className="text-center py-6 text-gray-500">Nenhum centro de despesa cadastrado.</td></tr>
             )}
@@ -309,7 +310,7 @@ function AbaCustoPorMaquina() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={6} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={6}><Carregando linhas={4} /></td></tr>}
             {!carregando && linhas.length === 0 && (
               <tr><td colSpan={6} className="text-center py-6 text-gray-500">Nenhum custo no período selecionado.</td></tr>
             )}
@@ -371,7 +372,7 @@ function AbaCustoPorMes() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={5} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={5}><Carregando linhas={4} /></td></tr>}
             {!carregando && linhas.map((l) => (
               <tr key={l.mes} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 font-medium text-gray-700">{NOMES_MESES[l.mes - 1]}</td>
@@ -541,7 +542,7 @@ function ComparacaoCentros() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={3} className="text-center py-6 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={3}><Carregando linhas={4} /></td></tr>}
             {!carregando && linhas.map((l) => (
               <tr key={l.centro_despesa_id ?? 'sem-centro'} className="border-t border-gray-100">
                 <td className="px-4 py-2.5 font-medium text-gray-700">{l.nome}</td>

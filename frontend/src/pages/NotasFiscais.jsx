@@ -17,6 +17,7 @@ import NotaFiscalDetalheModal from '../components/NotaFiscalDetalheModal'
 import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
+import Carregando from '../components/Carregando'
 
 export default function NotasFiscais() {
   const { isAdmin, isDiretor, isMecanico } = useAuth()
@@ -168,7 +169,7 @@ export default function NotasFiscais() {
             </tr>
           </thead>
           <tbody>
-            {carregando && <tr><td colSpan={8} className="text-center py-8 text-gray-500">Carregando...</td></tr>}
+            {carregando && <tr><td colSpan={8}><Carregando linhas={4} /></td></tr>}
             {!carregando && notas.length === 0 && (
               <tr><td colSpan={8} className="text-center py-8 text-gray-500">Nenhuma nota fiscal encontrada.</td></tr>
             )}
