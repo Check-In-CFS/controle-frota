@@ -1,0 +1,105 @@
+import io
+
+import pytest
+from PIL import Image, ImageDraw, ImageFont
+
+from app import leitura_nota, ocr_nota
+from tests.conftest import cabecalho
+
+CNPJ_VALIDO = "11.222.333/0001-81"  # dígitos verificadores corretos
+
+TEXTO_DANFE = f"""
+OFICINA DO JOAO PECAS E SERVICOS LTDA
+CNPJ: {CNPJ_VALIDO}
+DANFE - NOTA FISCAL ELETRONICA
+N° 000.123  Série 1
+Data de Emissão: 20/10/2026
+DESTINATARIO: AGRO FROTA LTDA  CNPJ 45.723.174/0001-10
+Valor dos produtos  R$ 400,00
+Valor Total da Nota  R$ 1.350,50
+"""
+
+
+def test_cnpj_valido_e_invalido():
+    assert ocr_nota._cnpj_valido("11222333000181")
+    assert not ocr_nota._cnpj_valido("11222333000182")
+    assert not ocr_nota._cnpj_valido("11111111111111")
+
+
+def test_interpreta_os_campos_de_uma_danfe():
+    nota = ocr_nota.interpretar(TEXTO_DANFE)
+    assert nota.fornecedor_cnpj == "11222333000181"   # o do emitente (primeiro válido), não o do destinatário
+    assert nota.numero == "000123"
+    assert nota.serie == "1"
+    assert nota.data_emissao == "2026-10-20"
+    assert nota.valor_total == 1350.50                # "Valor Total da Nota", não "Valor dos produtos"
+
+
+def test_nao_inventa_o_que_nao_acha():
+    nota = ocr_nota.interpretar("texto borrado sem nada util 12 34 ab")
+    assert nota.numero is None and nota.fornecedor_cnpj is None
+    assert nota.data_emissao is None and nota.valor_total is None
+
+
+def test_cnpj_com_erro_de_leitura_e_descartado():
+    nota = ocr_nota.interpretar("CNPJ 11.222.333/0001-80")  # um dígito errado
+    assert nota.fornecedor_cnpj is None
+
+
+def test_data_futura_ou_impossivel_e_ignorada():
+    assert ocr_nota.interpretar("Emissão: 31/02/2026").data_emissao is None
+    assert ocr_nota.interpretar("Emissão: 01/01/2999").data_emissao is None
+
+
+def test_valor_total_com_rotulo_mais_generico():
+    assert ocr_nota.interpretar("TOTAL R$ 89,90").valor_total == 89.90
+
+
+def test_modo_padrao_e_ocr(monkeypatch):
+    monkeypatch.delenv("LEITURA_FOTO", raising=False)
+    assert leitura_nota.modo() == "ocr"
+    monkeypatch.setenv("LEITURA_FOTO", "ia")
+    assert leitura_nota.modo() == "ia"
+
+
+def test_endpoint_usa_ocr_por_padrao_sem_nenhuma_chave(client, banco, monkeypatch):
+    monkeypatch.delenv("LEITURA_FOTO", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setattr(ocr_nota, "disponivel", lambda: True)
+    monkeypatch.setattr(ocr_nota, "extrair_texto", lambda jpeg: TEXTO_DANFE)
+    banco.tabelas["fornecedores"] = [{"id": 4, "nome": "Oficina do João"}]
+    saida = io.BytesIO()
+    Image.new("RGB", (300, 200), "white").save(saida, format="JPEG")
+    r = client.post("/notas-fiscais/ler-foto", files={"arquivo": ("n.jpg", saida.getvalue(), "image/jpeg")},
+                    headers=cabecalho("mecanico", 5))
+    assert r.status_code == 200
+    d = r.json()["dados"]
+    assert d["numero"] == "000123" and d["valor_total"] == 1350.5 and d["fornecedor_id"] == 4
+
+
+# ---------- Tesseract de verdade (pulado onde ele não está instalado) ----------
+
+@pytest.mark.skipif(not ocr_nota.disponivel(), reason="Tesseract não instalado")
+def test_tesseract_le_texto_de_uma_imagem_real():
+    fonte = None
+    for caminho in ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",):
+        try:
+            fonte = ImageFont.truetype(caminho, 34)
+        except OSError:
+            pass
+    if fonte is None:
+        try:
+            fonte = ImageFont.load_default(size=34)
+        except TypeError:
+            pytest.skip("sem fonte vetorial para desenhar o texto de teste")
+    img = Image.new("RGB", (1500, 700), "white")
+    desenho = ImageDraw.Draw(img)
+    linhas = [f"CNPJ: {CNPJ_VALIDO}", "Numero 000123  Serie 1", "Data de Emissao: 20/10/2026", "Valor Total da Nota R$ 1.350,50"]
+    for i, linha in enumerate(linhas):
+        desenho.text((40, 40 + i * 90), linha, fill="black", font=fonte)
+    saida = io.BytesIO()
+    img.save(saida, format="JPEG", quality=90)
+    nota = ocr_nota.ler_nota(saida.getvalue())
+    assert nota.fornecedor_cnpj == "11222333000181"
+    assert nota.valor_total == 1350.50
+    assert nota.data_emissao == "2026-10-20"

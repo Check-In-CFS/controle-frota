@@ -333,7 +333,7 @@ def ler_foto_nota(arquivo: UploadFile = File(...), usuario: UsuarioLogado = Depe
 
     dados, aviso = None, None
     if not leitura_nota.disponivel():
-        aviso = "A leitura automática não está ativada. A foto foi guardada; preencha os dados manualmente."
+        aviso = "A leitura automática não está disponível agora. A foto foi guardada; preencha os dados manualmente."
     else:
         try:
             dados = leitura_nota.saneado(leitura_nota.ler_nota(jpeg))

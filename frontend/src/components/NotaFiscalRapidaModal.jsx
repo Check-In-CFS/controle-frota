@@ -128,7 +128,7 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
       setFotoInfo({
         aviso: r.aviso,
         lido: !!d,
-        fornecedorNaoCadastrado: d && !d.fornecedor_id && d.fornecedor_nome ? d.fornecedor_nome : null,
+        fornecedorNaoCadastrado: d && !d.fornecedor_id ? (d.fornecedor_nome || d.fornecedor_cnpj || null) : null,
       })
     } catch (err) {
       setErro(extrairMensagemErro(err, 'Não foi possível enviar a foto. Tente de novo.'))
@@ -219,9 +219,9 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
                   </label>
                   {fotoInfo && (
                     <p className="text-xs text-gray-600 text-center">
-                      {fotoInfo.aviso || 'Dados lidos da foto. Confira tudo abaixo antes de continuar.'}
+                      {fotoInfo.aviso || 'Foto lida. Os campos que não deu para ler ficam em branco — confira tudo antes de continuar.'}
                       {fotoInfo.fornecedorNaoCadastrado && (
-                        <> Fornecedor lido: <strong>{fotoInfo.fornecedorNaoCadastrado}</strong> (não está cadastrado — escolha outro ou cadastre).</>
+                        <> Fornecedor (CNPJ) lido: <strong>{fotoInfo.fornecedorNaoCadastrado}</strong> (não está cadastrado — escolha outro ou cadastre).</>
                       )}
                     </p>
                   )}

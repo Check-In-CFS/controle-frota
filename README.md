@@ -53,7 +53,8 @@ docker compose up --build
 - Frontend: http://localhost:5173 · Backend: http://localhost:8000 (docs em `/docs`)
 - O código fica montado como volume: o que você editar recarrega sem rebuild.
 - Cuidado: o backend usa a `service_role`, então grave em um projeto Supabase de **testes**, não no de produção.
-- Fotos de notas fiscais: ficam no Supabase Storage, bucket privado `notas-fiscais` (criado automaticamente no 1º envio). Só o admin e quem enviou a foto conseguem abri-la. Para o preenchimento automático dos dados, coloque `ANTHROPIC_API_KEY` no `backend/.env` (sem a chave, a foto é só guardada). Cada foto lida tem custo na API da Anthropic; há limite de 30 fotos/hora por usuário.
+- Fotos de notas fiscais: ficam no Supabase Storage, bucket privado `notas-fiscais` (criado automaticamente no 1º envio). Só o admin e quem enviou a foto conseguem abri-la.
+- Leitura da foto (`LEITURA_FOTO` no `backend/.env`): `ocr` (padrão) usa o Tesseract instalado na imagem Docker — local, sem custo e sem enviar a imagem a ninguém, mas só preenche o que reconhece com segurança (CNPJ, número, série, data, valor total). `ia` usa a API do Claude (mais precisa, lê itens e fornecedor; exige `ANTHROPIC_API_KEY`, tem custo por foto e envia a imagem à Anthropic). Limite de 30 fotos/hora por usuário.
 - Não existe cadastro público: novos usuários são criados por um administrador na tela de Usuários.
 
 ### Testes do backend

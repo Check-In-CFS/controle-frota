@@ -1,7 +1,10 @@
 """
-Leitura de foto de nota fiscal com a API do Claude (visão): devolve os campos que
-conseguiu ler para o usuário só conferir. Nada é gravado a partir daqui -- o resultado
-vira sugestão no formulário.
+Leitura de foto de nota fiscal: devolve os campos que conseguiu ler para o usuário só
+conferir. Nada é gravado a partir daqui -- o resultado vira sugestão no formulário.
+
+Dois modos (variável LEITURA_FOTO): "ocr" (padrão) usa o Tesseract no próprio servidor,
+sem IA e sem custo; "ia" usa a API do Claude (visão), mais precisa, mas paga e envia a
+imagem à Anthropic.
 """
 
 import base64
@@ -44,11 +47,26 @@ INSTRUCOES = (
 )
 
 
+def modo() -> str:
+    """'ocr' (padrão: Tesseract local, sem IA) ou 'ia' (API do Claude, exige ANTHROPIC_API_KEY)."""
+    return "ia" if os.environ.get("LEITURA_FOTO", "ocr").strip().lower() == "ia" else "ocr"
+
+
 def disponivel() -> bool:
-    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    if modo() == "ia":
+        return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    from app import ocr_nota
+    return ocr_nota.disponivel()
 
 
 def ler_nota(jpeg: bytes) -> NotaLida:
+    if modo() == "ocr":
+        from app import ocr_nota
+        return ocr_nota.ler_nota(jpeg)
+    return _ler_com_ia(jpeg)
+
+
+def _ler_com_ia(jpeg: bytes) -> NotaLida:
     client = anthropic.Anthropic()
     resposta = client.messages.parse(
         model=MODELO,

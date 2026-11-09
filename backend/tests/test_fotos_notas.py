@@ -24,6 +24,7 @@ def enviar(client, papel="mecanico", usuario_id=5, conteudo=None, nome="nota.jpg
 @pytest.fixture
 def leitura_ligada(monkeypatch):
     """Simula a resposta da IA, sem chamar a API de verdade."""
+    monkeypatch.setenv("LEITURA_FOTO", "ia")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "chave-de-teste")
     lida = leitura_nota.NotaLida(
         numero="000.123", serie="1", data_emissao="2026-10-20", fornecedor_nome="Oficina do João",
@@ -99,6 +100,7 @@ def test_limite_de_fotos_por_usuario(client, leitura_ligada, monkeypatch):
 # ---------- leitura (IA) ----------
 
 def test_sem_chave_da_ia_guarda_a_foto_e_avisa(client, banco, monkeypatch):
+    monkeypatch.setenv("LEITURA_FOTO", "ia")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     r = enviar(client)
     assert r.status_code == 200
@@ -107,6 +109,7 @@ def test_sem_chave_da_ia_guarda_a_foto_e_avisa(client, banco, monkeypatch):
 
 
 def test_falha_da_ia_nao_perde_a_foto(client, banco, monkeypatch):
+    monkeypatch.setenv("LEITURA_FOTO", "ia")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "chave-de-teste")
 
     def falha(jpeg):
