@@ -1,11 +1,12 @@
-fastapi==0.115.0
-uvicorn[standard]==0.32.0
+fastapi==0.162.2
+uvicorn[standard]==0.54.0
 supabase==2.9.1
-python-dotenv==1.0.1
+python-dotenv==1.2.4
 pydantic==2.9.2
-python-multipart==0.0.12
+python-multipart==0.0.33
 reportlab==4.2.5
 openpyxl==3.1.5
 bcrypt==4.2.1
-pyjwt==2.9.0
+pyjwt==2.15.1
 defusedxml==0.7.1
+starlette==1.10.0
