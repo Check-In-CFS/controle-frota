@@ -9,6 +9,7 @@ usuário preencher -- tudo vira sugestão para conferir, nunca é gravado direto
 """
 
 import io
+import os
 import re
 from datetime import date
 
@@ -103,20 +104,56 @@ def _colar_digitos(texto: str) -> str:
     return re.sub(r"(?<=\d) (?=\d)", "", texto)
 
 
+def _cnpjs_da_empresa() -> set[str]:
+    """CNPJs da própria empresa (compradora), para nunca confundir com o do fornecedor. Env EMPRESA_CNPJ, separados por vírgula."""
+    return {re.sub(r"\D", "", c) for c in os.environ.get("EMPRESA_CNPJ", "").split(",") if c.strip()}
+
+
+def _achar_cnpj_emitente(colado: str):
+    """
+    Em uma DANFE o CNPJ do emitente (quem vendeu) vem antes do bloco DESTINATÁRIO, e o do
+    destinatário (quem comprou -- no nosso caso a própria empresa) vem depois. Por isso:
+    ignora os CNPJs da empresa e tudo que aparece depois do marcador "DESTINATÁRIO".
+    Se o do fornecedor não foi lido, devolve None em vez de arriscar o do comprador.
+    """
+    proprios = _cnpjs_da_empresa()
+    marcador = re.search(r"DESTINAT[ÁA]RIO", colado, re.I)
+    limite = marcador.start() if marcador else len(colado)
+    for m in _RE_CNPJ.finditer(colado):
+        if m.start() >= limite:
+            break
+        digitos = "".join(m.groups())
+        if _cnpj_valido(digitos) and digitos not in proprios:
+            return digitos
+    return None
+
+
+_RE_NUMERO_DANFE = re.compile(r"(?<![\d.,/-])(\d{1,3}(?:\.\d{3})+)(?![\d.,/-])")
+
+
+def _achar_numero_danfe(texto: str):
+    """Na DANFE o número (ex: 872.637) vem sozinho, poucas linhas antes de 'SÉRIE', sem o prefixo 'Nº'."""
+    linhas = texto.splitlines()
+    for i, linha in enumerate(linhas):
+        if re.search(r"S[ÉEÍI]RIE\s*\d", linha, re.I):
+            for anterior in reversed(linhas[max(0, i - 4): i + 1]):
+                m = _RE_NUMERO_DANFE.search(anterior)
+                if m:
+                    return re.sub(r"\D", "", m.group(1))
+    return None
+
+
 def interpretar(texto: str) -> NotaLida:
     nota = NotaLida()
     colado = _colar_digitos(texto)
 
-    # CNPJ do emitente: o primeiro com dígito verificador válido (o emitente vem antes do destinatário)
-    for m in _RE_CNPJ.finditer(colado):
-        digitos = "".join(m.groups())
-        if _cnpj_valido(digitos):
-            nota.fornecedor_cnpj = digitos
-            break
+    nota.fornecedor_cnpj = _achar_cnpj_emitente(colado)
 
     m = _RE_NUMERO.search(texto)
     if m:
         nota.numero = re.sub(r"\D", "", m.group(1))
+    else:
+        nota.numero = _achar_numero_danfe(texto)
 
     m = _RE_SERIE.search(texto)
     if m:

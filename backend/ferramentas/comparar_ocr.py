@@ -39,7 +39,7 @@ def texto_paddle(jpeg: bytes) -> str:
 
     if _paddle is None:
         _paddle = PaddleOCR(
-            lang="pt", use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=False,
+            lang="pt", use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=False, enable_mkldnn=False,
         )
     img = np.array(Image.open(io.BytesIO(jpeg)).convert("RGB"))
     resultado = _paddle.predict(img)[0]
