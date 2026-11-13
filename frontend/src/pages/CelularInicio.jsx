@@ -1,43 +1,65 @@
 import { Link } from 'react-router-dom'
-import { FileText, Wrench, ChevronRight, ShieldAlert } from 'lucide-react'
+import { ArrowRight, FileText, Wrench, ShieldAlert } from 'lucide-react'
 import { useAuth } from '../services/auth'
 import CelularCabecalho from '../components/CelularCabecalho'
 
-/** Início no celular: as duas coisas que o mecânico faz pelo aparelho. */
+function saudacao() {
+  const h = new Date().getHours()
+  return h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
+}
+
+function dataPorExtenso() {
+  const t = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+  return t.charAt(0).toUpperCase() + t.slice(1) // só a 1ª letra ("Sexta-feira, 13 de novembro")
+}
+
+/** Início no celular: as duas coisas que o mecânico faz pelo aparelho, em dois botões enormes. */
 export default function CelularInicio() {
   const { auth, isDiretor } = useAuth()
+  const primeiroNome = auth?.nome?.split(' ')[0]
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="m-app">
       <CelularCabecalho titulo="Controle de Frota" voltar={false} />
 
       {isDiretor ? (
-        <main className="flex-1 flex flex-col items-center justify-center text-center px-6 text-gray-600">
-          <ShieldAlert size={40} className="text-gray-500 mb-3" />
-          <p className="font-medium text-gray-800">Acesso somente para visualização</p>
-          <p className="text-sm mt-1">No celular só é possível lançar notas e registrar manutenções, e o perfil de diretor não lança. Acesse o sistema pelo computador.</p>
+        <main className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-3">
+          <ShieldAlert size={44} className="text-[#5b5f66]" />
+          <p className="m-titulo text-2xl">Acesso somente para visualização</p>
+          <p className="text-[#5b5f66]">No celular só é possível lançar notas e registrar manutenções, e o perfil de diretor não lança. Acesse o sistema pelo computador.</p>
         </main>
       ) : (
-        <main className="flex-1 px-4 py-6 space-y-4">
-          <p className="text-gray-600 text-sm">Olá, {auth?.nome?.split(' ')[0]}. O que você quer fazer?</p>
+        <main className="m-conteudo" style={{ paddingBottom: 32 }}>
+          <div className="m-entrada pt-2">
+            <p className="text-[15px] font-semibold text-[#5b5f66]">{dataPorExtenso()}</p>
+            <h1 className="m-titulo text-[44px] mt-1">{saudacao()},<br />{primeiroNome}</h1>
+          </div>
 
-          <Link to="/lancar-nota" className="flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm active:bg-gray-50">
-            <span className="w-14 h-14 rounded-xl bg-indigo-50 text-primary flex items-center justify-center shrink-0"><FileText size={28} /></span>
-            <span className="flex-1">
-              <span className="block text-lg font-semibold text-gray-800">Lançar nota fiscal</span>
-              <span className="block text-sm text-gray-500">Foto da nota, máquina e motivo</span>
+          <Link to="/lancar-nota" className="m-tile m-entrada bg-castelo text-tinta" style={{ animationDelay: '80ms' }}>
+            <FileText size={150} strokeWidth={1.5} className="m-tile-marca" aria-hidden="true" />
+            <span className="w-12 h-12 rounded-xl bg-tinta text-castelo flex items-center justify-center"><FileText size={26} /></span>
+            <span>
+              <span className="block m-titulo text-[34px]">Lançar nota fiscal</span>
+              <span className="flex items-end justify-between gap-3 mt-1.5">
+                <span className="text-[16px] font-medium leading-snug">Tire a foto da nota, escolha a máquina e o motivo.</span>
+                <span className="w-11 h-11 rounded-full bg-tinta text-castelo flex items-center justify-center shrink-0"><ArrowRight size={22} /></span>
+              </span>
             </span>
-            <ChevronRight className="text-gray-500" />
           </Link>
 
-          <Link to="/registrar-manutencao" className="flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 shadow-sm active:bg-gray-50">
-            <span className="w-14 h-14 rounded-xl bg-indigo-50 text-primary flex items-center justify-center shrink-0"><Wrench size={28} /></span>
-            <span className="flex-1">
-              <span className="block text-lg font-semibold text-gray-800">Registrar manutenção</span>
-              <span className="block text-sm text-gray-500">Máquina, tipo, o que foi feito e leitura</span>
+          <Link to="/registrar-manutencao" className="m-tile m-entrada bg-tinta text-white" style={{ animationDelay: '160ms' }}>
+            <Wrench size={150} strokeWidth={1.5} className="m-tile-marca" aria-hidden="true" />
+            <span className="w-12 h-12 rounded-xl bg-castelo text-tinta flex items-center justify-center"><Wrench size={26} /></span>
+            <span>
+              <span className="block m-titulo text-[34px]">Registrar manutenção</span>
+              <span className="flex items-end justify-between gap-3 mt-1.5">
+                <span className="text-[16px] font-medium leading-snug text-white/80">Máquina, tipo, o que foi feito e a leitura do horímetro.</span>
+                <span className="w-11 h-11 rounded-full bg-castelo text-tinta flex items-center justify-center shrink-0"><ArrowRight size={22} /></span>
+              </span>
             </span>
-            <ChevronRight className="text-gray-500" />
           </Link>
+
+          <p className="m-titulo text-[15px] text-[#8a8d93] text-center mt-auto pt-6 tracking-[0.14em]">Castelo Forte · Frota</p>
         </main>
       )}
     </div>

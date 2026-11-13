@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Truck, Eye, EyeOff } from 'lucide-react'
+import { Castle, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../services/auth'
 
 export default function Login() {
@@ -41,79 +41,70 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-3">
-            <Truck className="text-primary" size={24} />
-          </div>
-          <h1 className="text-xl font-semibold text-gray-800">Controle de Frota</h1>
-          <p className="text-sm text-gray-500 mt-1">Entre com seu usuário e senha</p>
+    <div className="m-app">
+      <div className="bg-tinta text-white">
+        <div className="max-w-md mx-auto px-6 pt-[max(40px,env(safe-area-inset-top))] pb-10 m-entrada">
+          <span className="m-marca !w-14 !h-14 !rounded-2xl"><Castle size={32} strokeWidth={2.2} /></span>
+          <p className="m-titulo text-[17px] text-castelo mt-5 tracking-[0.12em]">Castelo Forte</p>
+          <h1 className="m-titulo text-[46px] mt-1">Controle<br />de Frota</h1>
         </div>
+        <div className="m-faixa" aria-hidden="true" />
+      </div>
 
+      <main className="flex-1 w-full max-w-md mx-auto px-5 py-7 m-entrada" style={{ animationDelay: '90ms' }}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {erro && (
-            <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{erro}</div>
-          )}
+          {erro && <div role="alert" className="m-aviso m-aviso-erro">{erro}</div>}
 
           <label className="block">
-            <span className="block text-sm text-gray-600 mb-1">Usuário</span>
+            <span className="m-rotulo">Usuário</span>
             <input
               required
               autoFocus
+              autoCapitalize="none"
+              autoCorrect="off"
+              autoComplete="username"
               value={usuario}
               onChange={(e) => setUsuario(e.target.value)}
-              className="input"
+              className="m-input"
             />
           </label>
 
           <label className="block">
-            <span className="block text-sm text-gray-600 mb-1">Senha</span>
+            <span className="m-rotulo">Senha</span>
             <div className="relative">
               <input
                 required
                 type={mostrarSenha ? 'text' : 'password'}
+                autoComplete="current-password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
-                className="input pr-10"
+                className="m-input pr-14"
               />
               <button
                 type="button"
                 onClick={() => setMostrarSenha((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600"
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center text-[#5b5f66]"
                 aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
               >
-                {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                {mostrarSenha ? <EyeOff size={22} /> : <Eye size={22} />}
               </button>
             </div>
           </label>
 
-          <button
-            type="submit"
-            disabled={entrando}
-            className="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-60"
-          >
+          <button type="submit" disabled={entrando} className="m-botao m-botao-primario !mt-6">
             {entrando ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        <p className="text-xs text-gray-500 mt-4 text-center">
-          Não tem acesso? Peça a criação do seu usuário ao administrador do sistema.
-        </p>
+        <p className="text-[15px] text-[#5b5f66] mt-5 text-center">Não tem acesso? Peça a criação do seu usuário ao administrador do sistema.</p>
 
-        <div className="mt-6 pt-4 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={handleObservador}
-            className="w-full border border-gray-200 text-gray-600 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50"
-          >
+        <div className="mt-8 pt-6 border-t-2 border-giz">
+          <button type="button" onClick={handleObservador} className="m-botao m-botao-contorno !min-h-[52px] !text-[18px]">
             Entrar como observador
           </button>
-          <p className="text-xs text-gray-500 mt-2 text-center">
-            Visualiza o sistema com dados de demonstração, sem acesso ao banco real.
-          </p>
+          <p className="text-[14px] text-[#5b5f66] mt-2 text-center">Visualiza o sistema com dados de demonstração, sem acesso ao banco real.</p>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Camera, Check, ChevronLeft, ImagePlus, Plus, ShieldAlert, CheckCircle2 } from 'lucide-react'
+import { Camera, CheckCircle2, ChevronLeft, ImagePlus, Plus, ShieldAlert } from 'lucide-react'
 import { useAuth } from '../services/auth'
 import { api } from '../services/api'
 import { listarMaquinas } from '../services/maquinas'
@@ -10,12 +10,15 @@ import {
 } from '../services/notasFiscais'
 import FornecedorModal from '../components/FornecedorModal'
 import CelularCabecalho from '../components/CelularCabecalho'
+import Secao from '../components/celular/Secao'
+import Passos from '../components/celular/Passos'
+import ListaMaquinas from '../components/celular/ListaMaquinas'
 import { useErrosDeCampo } from '../hooks/useErrosDeCampo'
 
 const HOJE = new Date().toISOString().slice(0, 10)
 
 /**
- * Única tela do sistema no celular: lançar nota fiscal.
+ * Lançar nota fiscal pelo celular.
  * Passo 1 -> foto da nota + máquina + motivo.  Passo 2 -> conferir os dados lidos da foto e lançar.
  */
 export default function LancarNota() {
@@ -27,7 +30,6 @@ export default function LancarNota() {
   const [maquinas, setMaquinas] = useState([])
   const [fornecedores, setFornecedores] = useState([])
   const [novoFornecedor, setNovoFornecedor] = useState(false)
-  const [filtroMaquina, setFiltroMaquina] = useState('')
 
   const [fotoUrl, setFotoUrl] = useState(null) // pré-visualização local
   const [arquivoUrl, setArquivoUrl] = useState('')
@@ -151,210 +153,153 @@ export default function LancarNota() {
     setDados({ numero: '', serie: '1', data_emissao: HOJE, fornecedor_id: '', tipo: 'peca', valor_total: '' })
   }
 
-  const maquinasFiltradas = maquinas.filter((m) =>
-    `${m.codigo} ${m.marca || ''} ${m.modelo || ''}`.toLowerCase().includes(filtroMaquina.trim().toLowerCase())
-  )
   const maquinaEscolhida = maquinas.find((m) => String(m.id) === String(maquinaId))
 
   return (
-    <div ref={raizRef} className="min-h-screen bg-gray-50 flex flex-col">
+    <div ref={raizRef} className="m-app">
       <CelularCabecalho titulo="Lançar nota fiscal" />
 
       {isDiretor ? (
-        <main className="flex-1 flex flex-col items-center justify-center text-center px-6 text-gray-600">
-          <ShieldAlert size={40} className="text-gray-500 mb-3" />
-          <p className="font-medium text-gray-800">Acesso somente para visualização</p>
-          <p className="text-sm mt-1">No celular só é possível lançar notas, e o perfil de diretor não lança. Acesse o sistema pelo computador.</p>
+        <main className="flex-1 flex flex-col items-center justify-center text-center px-8 gap-3">
+          <ShieldAlert size={44} className="text-[#5b5f66]" />
+          <p className="m-titulo text-2xl">Acesso somente para visualização</p>
+          <p className="text-[#5b5f66]">O perfil de diretor não lança notas. Acesse o sistema pelo computador.</p>
         </main>
       ) : lancada ? (
-        <main className="flex-1 flex flex-col items-center justify-center text-center px-6">
-          <CheckCircle2 size={56} className="text-green-600 mb-3" />
-          <h1 className="text-xl font-semibold text-gray-800">Nota lançada!</h1>
-          <p className="text-sm text-gray-600 mt-1">Nota {lancada.numero}/{lancada.serie} · {maquinaEscolhida?.codigo}</p>
-          <button onClick={novaNota} className="mt-8 w-full max-w-xs bg-primary text-white py-4 rounded-xl text-base font-semibold">
-            Lançar outra nota
-          </button>
-          <Link to="/celular" className="mt-3 w-full max-w-xs text-center border border-gray-200 text-gray-700 py-4 rounded-xl text-base font-medium bg-white">Voltar ao início</Link>
+        <main className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-2 m-entrada">
+          <span className="w-24 h-24 rounded-full bg-sucesso text-white flex items-center justify-center mb-2"><CheckCircle2 size={56} strokeWidth={2.2} /></span>
+          <h1 className="m-titulo text-4xl">Nota lançada!</h1>
+          <p className="text-[#5b5f66] text-lg">Nota {lancada.numero}/{lancada.serie} · {maquinaEscolhida?.codigo}</p>
+          <div className="w-full max-w-sm mt-8 space-y-3">
+            <button onClick={novaNota} className="m-botao m-botao-primario">Lançar outra nota</button>
+            <Link to="/celular" className="m-botao m-botao-contorno">Voltar ao início</Link>
+          </div>
         </main>
       ) : (
-        <main className="flex-1 px-4 py-4 pb-28">
-          <ol className="flex items-center gap-2 mb-4" aria-label="Passos">
-            {['Foto e máquina', 'Conferir dados'].map((nome, i) => (
-              <li key={nome} className="flex-1" aria-current={i === passo ? 'step' : undefined}>
-                <div className={`h-1.5 rounded-full ${i <= passo ? 'bg-primary' : 'bg-gray-200'}`} />
-                <span className={`block text-xs mt-1 ${i === passo ? 'text-primary font-medium' : 'text-gray-500'}`}>{i + 1}. {nome}</span>
-              </li>
-            ))}
-          </ol>
+        <main className="m-conteudo">
+          <Passos atual={passo} nomes={['Foto e máquina', 'Conferir dados']} />
 
-          {erro && <div role="alert" className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg mb-4">{erro}</div>}
+          {erro && <div role="alert" className="m-aviso m-aviso-erro">{erro}</div>}
 
           {passo === 0 && (
-            <form onSubmit={continuar} className="space-y-6" id="form-passo-1">
-              <section>
-                <h2 className="text-sm font-semibold text-gray-700 mb-2">1. Foto da nota *</h2>
+            <form onSubmit={continuar} className="flex flex-col gap-4" id="form-passo-1">
+              <Secao numero={1} titulo="Foto da nota" obrigatorio>
                 {/* dois campos de arquivo: um abre a câmera, o outro a galeria (sem "capture") */}
                 <input id="foto-camera" type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" />
                 <input id="foto-galeria" type="file" accept="image/*" onChange={handleFoto} className="hidden" />
 
-                {fotoUrl && (
-                  <img src={fotoUrl} alt="Foto da nota fiscal" className="w-full max-h-56 object-contain bg-gray-100 rounded-xl border border-gray-200 mb-3" />
+                {fotoUrl ? (
+                  <img src={fotoUrl} alt="Foto da nota fiscal" className="w-full max-h-64 object-contain bg-[#ece8dc] rounded-2xl border-2 border-giz mb-3" />
+                ) : (
+                  <div className="m-foto-vazia mb-3"><Camera size={32} aria-hidden="true" /><span>Nenhuma foto ainda</span></div>
                 )}
 
                 <div className="grid grid-cols-2 gap-3">
-                  <label
-                    htmlFor="foto-camera"
-                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-primary bg-primary text-white py-5 text-sm font-semibold cursor-pointer active:opacity-90"
-                  >
-                    <Camera size={28} />
-                    {fotoUrl ? 'Tirar outra' : 'Tirar foto'}
+                  <label htmlFor="foto-camera" className="m-botao m-botao-escuro flex-col !gap-1 !min-h-[84px] !text-[19px] cursor-pointer">
+                    <Camera size={28} />{fotoUrl ? 'Tirar outra' : 'Tirar foto'}
                   </label>
-                  <label
-                    htmlFor="foto-galeria"
-                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-primary/40 bg-white text-primary py-5 text-sm font-semibold cursor-pointer active:bg-indigo-50"
-                  >
-                    <ImagePlus size={28} />
-                    {fotoUrl ? 'Outra da galeria' : 'Escolher da galeria'}
+                  <label htmlFor="foto-galeria" className="m-botao m-botao-contorno flex-col !gap-1 !min-h-[84px] !text-[19px] cursor-pointer">
+                    <ImagePlus size={28} />{fotoUrl ? 'Outra da galeria' : 'Da galeria'}
                   </label>
                 </div>
 
-                <p role="status" className="text-center text-sm mt-2 text-gray-600">
+                <p role="status" className={`m-aviso mt-3 ${arquivoUrl ? 'm-aviso-ok' : lendo ? 'm-aviso-info' : fotoUrl ? 'm-aviso-erro' : ''} ${!arquivoUrl && !lendo && !fotoUrl ? '!p-0 text-[15px] text-[#5b5f66] font-normal' : ''}`}>
                   {lendo ? 'Enviando e lendo a foto...' : arquivoUrl ? '✓ Foto anexada' : fotoUrl ? 'Não foi possível enviar. Tente de novo.' : 'Tire uma foto da nota ou escolha uma que já está no celular.'}
                 </p>
-                {avisoFoto && <p className="text-xs text-gray-600 mt-2">{avisoFoto}</p>}
-              </section>
+                {avisoFoto && <p className="m-ajuda">{avisoFoto}</p>}
+              </Secao>
 
-              <section>
-                <h2 className="text-sm font-semibold text-gray-700 mb-2">2. Máquina *</h2>
-                <input
-                  value={filtroMaquina}
-                  onChange={(e) => setFiltroMaquina(e.target.value)}
-                  placeholder="Buscar máquina"
-                  aria-label="Buscar máquina"
-                  className="input mb-2"
-                />
-                <ul className="space-y-2 max-h-60 overflow-y-auto">
-                  {maquinasFiltradas.length === 0 && <li className="text-sm text-gray-500 py-2">Nenhuma máquina encontrada.</li>}
-                  {maquinasFiltradas.map((m) => {
-                    const marcada = String(m.id) === String(maquinaId)
-                    return (
-                      <li key={m.id}>
-                        <button
-                          type="button"
-                          aria-pressed={marcada}
-                          onClick={() => setMaquinaId(m.id)}
-                          className={`w-full flex items-center justify-between text-left px-4 py-3.5 rounded-lg border text-sm ${
-                            marcada ? 'border-primary bg-indigo-50 text-primary' : 'border-gray-200 bg-white text-gray-700'
-                          }`}
-                        >
-                          <span>
-                            <span className="font-medium">{m.codigo}</span>
-                            {(m.marca || m.modelo) && <span className="text-gray-500"> · {[m.marca, m.modelo].filter(Boolean).join(' ')}</span>}
-                          </span>
-                          {marcada && <Check size={18} />}
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </section>
+              <Secao numero={2} titulo="Máquina" obrigatorio>
+                <ListaMaquinas maquinas={maquinas} escolhida={maquinaId} onEscolher={setMaquinaId} />
+              </Secao>
 
-              <section>
-                <h2 className="text-sm font-semibold text-gray-700 mb-2">3. Motivo *</h2>
-                <div className="grid grid-cols-2 gap-2">
+              <Secao numero={3} titulo="Motivo" obrigatorio>
+                <div className="grid grid-cols-2 gap-2.5">
                   {MOTIVOS_NOTA.map((m) => (
-                    <button
-                      type="button"
-                      key={m}
-                      aria-pressed={motivo === m}
-                      onClick={() => setMotivo(m)}
-                      className={`py-3 px-2 rounded-lg text-sm font-medium border ${
-                        motivo === m ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200'
-                      }`}
-                    >
+                    <button type="button" key={m} aria-pressed={motivo === m} onClick={() => setMotivo(m)} className="m-opcao m-opcao-centro !min-h-[64px] !text-[16px] leading-tight">
                       {m}
                     </button>
                   ))}
                 </div>
-                <label className="block mt-3">
-                  <span className="block text-sm text-gray-600 mb-1">Detalhe (opcional)</span>
-                  <textarea rows={2} value={detalhe} onChange={(e) => setDetalhe(e.target.value)} className="input" placeholder="Ex: troca do filtro hidráulico" />
+                <label className="block mt-4">
+                  <span className="m-rotulo">Detalhe (opcional)</span>
+                  <textarea rows={2} value={detalhe} onChange={(e) => setDetalhe(e.target.value)} className="m-input" placeholder="Ex: troca do filtro hidráulico" />
                 </label>
-              </section>
+              </Secao>
             </form>
           )}
 
           {passo === 1 && (
-            <form onSubmit={lancar} className="space-y-4" id="form-passo-2">
-              <p className="text-sm text-gray-600">
-                {avisoFoto ? 'Não deu para ler a foto: preencha os dados da nota.' : 'Confira os dados lidos da foto. Os campos em branco precisam ser preenchidos.'}
+            <form onSubmit={lancar} className="flex flex-col gap-4" id="form-passo-2">
+              <p className={`m-aviso ${avisoFoto ? 'm-aviso-info' : 'm-aviso-ok'}`}>
+                {avisoFoto ? 'Não deu para ler a foto: preencha os dados da nota.' : 'Confira os dados lidos da foto. O que ficou em branco precisa ser preenchido.'}
               </p>
 
-              <div className="grid grid-cols-3 gap-3">
-                <label className="col-span-2 block">
-                  <span className="block text-sm text-gray-600 mb-1">Número da nota *</span>
-                  <input required inputMode="numeric" maxLength={10} value={dados.numero} onChange={(e) => atualizar('numero', e.target.value.replace(/\D/g, ''))} className="input" />
-                </label>
-                <label className="block">
-                  <span className="block text-sm text-gray-600 mb-1">Série</span>
-                  <input value={dados.serie} onChange={(e) => atualizar('serie', e.target.value)} className="input" />
-                </label>
-              </div>
+              <Secao titulo="Dados da nota" className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <label className="col-span-2 block">
+                    <span className="m-rotulo">Número da nota *</span>
+                    <input required inputMode="numeric" maxLength={10} value={dados.numero} onChange={(e) => atualizar('numero', e.target.value.replace(/\D/g, ''))} className="m-input" />
+                  </label>
+                  <label className="block">
+                    <span className="m-rotulo">Série</span>
+                    <input value={dados.serie} onChange={(e) => atualizar('serie', e.target.value)} className="m-input" />
+                  </label>
+                </div>
 
-              <label className="block">
-                <span className="block text-sm text-gray-600 mb-1">Data de emissão *</span>
-                <input required type="date" max={HOJE} value={dados.data_emissao} onChange={(e) => atualizar('data_emissao', e.target.value)} className="input" />
-              </label>
-
-              <div>
                 <label className="block">
-                  <span className="block text-sm text-gray-600 mb-1">Fornecedor *</span>
-                  <select required value={dados.fornecedor_id} onChange={(e) => atualizar('fornecedor_id', e.target.value)} className="input">
-                    <option value="">Selecione...</option>
-                    {fornecedores.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
-                  </select>
+                  <span className="m-rotulo">Data de emissão *</span>
+                  <input required type="date" max={HOJE} value={dados.data_emissao} onChange={(e) => atualizar('data_emissao', e.target.value)} className="m-input" />
                 </label>
-                {fornecedorNovo && String(dados.fornecedor_id) !== '' && (
-                  <p className="text-xs text-green-700 mt-1">
-                    ✓ Fornecedor <strong>{fornecedorNovo.nome}</strong> cadastrado automaticamente pelo CNPJ da nota.
-                    {fornecedorNovo.provisorio && ' O nome é provisório; peça ao administrador para corrigir.'}
+
+                <div>
+                  <label className="block">
+                    <span className="m-rotulo">Fornecedor *</span>
+                    <select required value={dados.fornecedor_id} onChange={(e) => atualizar('fornecedor_id', e.target.value)} className="m-input">
+                      <option value="">Selecione...</option>
+                      {fornecedores.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
+                    </select>
+                  </label>
+                  {fornecedorNovo && String(dados.fornecedor_id) !== '' && (
+                    <p className="m-aviso m-aviso-ok mt-2">
+                      ✓ Fornecedor <strong>{fornecedorNovo.nome}</strong> cadastrado automaticamente pelo CNPJ da nota.
+                      {fornecedorNovo.provisorio && ' O nome é provisório; peça ao administrador para corrigir.'}
+                    </p>
+                  )}
+                  {fornecedorLido && !dados.fornecedor_id && (
+                    <p className="m-aviso m-aviso-info mt-2">Lido na foto: <strong>{fornecedorLido}</strong> — não está cadastrado.</p>
+                  )}
+                  <button type="button" onClick={() => setNovoFornecedor(true)} className="mt-3 min-h-[44px] text-[16px] font-bold underline underline-offset-4 flex items-center gap-1.5">
+                    <Plus size={18} /> Fornecedor não está na lista
+                  </button>
+                </div>
+
+                <fieldset>
+                  <legend className="m-rotulo">Tipo da nota</legend>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {TIPOS_NOTA.map((t) => (
+                      <button type="button" key={t.value} aria-pressed={dados.tipo === t.value} onClick={() => atualizar('tipo', t.value)} className="m-opcao m-opcao-centro">{t.label}</button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                {itens.length === 0 ? (
+                  <label className="block">
+                    <span className="m-rotulo">Valor total (R$) *</span>
+                    <input required type="number" inputMode="decimal" step="0.01" min="0.01" value={dados.valor_total} onChange={(e) => atualizar('valor_total', e.target.value)} className="m-input !text-[26px] font-bold" placeholder="0,00" />
+                  </label>
+                ) : (
+                  <p className="m-aviso m-aviso-info">
+                    {itens.length} item(ns) lido(s) da foto · total{' '}
+                    <strong>{itens.reduce((s, i) => s + i.quantidade * i.valor_unitario, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
                   </p>
                 )}
-                {fornecedorLido && !dados.fornecedor_id && (
-                  <p className="text-xs text-gray-600 mt-1">Lido na foto: <strong>{fornecedorLido}</strong> — não está cadastrado.</p>
-                )}
-                <button type="button" onClick={() => setNovoFornecedor(true)} className="mt-2 text-sm text-primary font-medium flex items-center gap-1">
-                  <Plus size={16} /> Fornecedor não está na lista
-                </button>
-              </div>
+              </Secao>
 
-              <fieldset>
-                <legend className="text-sm text-gray-600 mb-2">Tipo da nota</legend>
-                <div className="grid grid-cols-3 gap-2">
-                  {TIPOS_NOTA.map((t) => (
-                    <button type="button" key={t.value} aria-pressed={dados.tipo === t.value} onClick={() => atualizar('tipo', t.value)}
-                      className={`py-3 rounded-lg text-sm font-medium border ${dados.tipo === t.value ? 'bg-primary text-white border-primary' : 'bg-white text-gray-700 border-gray-200'}`}>
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-
-              {itens.length === 0 ? (
-                <label className="block">
-                  <span className="block text-sm text-gray-600 mb-1">Valor total (R$) *</span>
-                  <input required type="number" inputMode="decimal" step="0.01" min="0.01" value={dados.valor_total} onChange={(e) => atualizar('valor_total', e.target.value)} className="input text-lg" placeholder="0,00" />
-                </label>
-              ) : (
-                <p className="text-sm text-gray-700">
-                  {itens.length} item(ns) lido(s) da foto · total{' '}
-                  <strong>{itens.reduce((s, i) => s + i.quantidade * i.valor_unitario, 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
-                </p>
-              )}
-
-              <div className="rounded-lg bg-white border border-gray-200 p-3 text-sm text-gray-600 space-y-0.5">
-                <p><strong className="text-gray-800">Máquina:</strong> {maquinaEscolhida?.codigo}</p>
-                <p><strong className="text-gray-800">Motivo:</strong> {motivo}{detalhe.trim() ? ` — ${detalhe.trim()}` : ''}</p>
+              <div className="rounded-2xl bg-tinta text-white p-4">
+                <p className="m-titulo text-lg text-castelo mb-2">Resumo</p>
+                <p><span className="text-white/60">Máquina</span> · <strong>{maquinaEscolhida?.codigo}</strong></p>
+                <p className="mt-0.5"><span className="text-white/60">Motivo</span> · <strong>{motivo}</strong>{detalhe.trim() ? ` — ${detalhe.trim()}` : ''}</p>
               </div>
             </form>
           )}
@@ -362,18 +307,13 @@ export default function LancarNota() {
       )}
 
       {!lancada && !isDiretor && (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 px-4 py-3 flex gap-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="m-barra">
           {passo === 1 && (
-            <button type="button" onClick={() => { setErro(null); setPasso(0) }} className="flex items-center gap-1 px-4 py-3.5 text-sm text-gray-600 border border-gray-200 rounded-xl">
-              <ChevronLeft size={16} /> Voltar
+            <button type="button" onClick={() => { setErro(null); setPasso(0) }} className="m-botao m-botao-contorno m-botao-voltar" aria-label="Voltar ao passo 1">
+              <ChevronLeft size={26} />
             </button>
           )}
-          <button
-            type="submit"
-            form={passo === 0 ? 'form-passo-1' : 'form-passo-2'}
-            disabled={lendo || salvando}
-            className="flex-1 bg-primary text-white py-3.5 rounded-xl text-base font-semibold disabled:opacity-60"
-          >
+          <button type="submit" form={passo === 0 ? 'form-passo-1' : 'form-passo-2'} disabled={lendo || salvando} className="m-botao m-botao-primario">
             {passo === 0 ? 'Continuar' : salvando ? 'Lançando...' : 'Lançar nota'}
           </button>
         </div>
