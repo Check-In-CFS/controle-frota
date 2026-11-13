@@ -7,6 +7,22 @@ export const TIPOS_NOTA = [
   { value: 'outro', label: 'Outro' },
 ]
 
+// Motivos do lançamento feito pelo mecânico pelo celular. Ficam gravados no início
+// do campo Observações da nota ("Motivo: ... — detalhe").
+export const MOTIVOS_NOTA = [
+  'Manutenção corretiva',
+  'Manutenção preventiva',
+  'Reposição de peça',
+  'Serviço terceirizado',
+  'Abastecimento',
+  'Outro',
+]
+
+export function montarObservacaoComMotivo(motivo, detalhe) {
+  const d = (detalhe || '').trim()
+  return d ? `Motivo: ${motivo} — ${d}` : `Motivo: ${motivo}`
+}
+
 export async function listarNotasFiscais(filtros = {}) {
   const params = {}
   if (filtros.tipo) params.tipo = filtros.tipo

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useErrosDeCampo } from '../hooks/useErrosDeCampo'
 
 const FOCAVEIS = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -18,6 +19,7 @@ export default function Modal({ onClose, fecharAoClicarFora = false, children })
   const pressionouNoFundo = useRef(false)
 
   useEffect(() => { onCloseRef.current = onClose })
+  useErrosDeCampo(fundoRef)
 
   useEffect(() => {
     const anterior = document.activeElement
@@ -51,42 +53,8 @@ export default function Modal({ onClose, fecharAoClicarFora = false, children })
       }
     }
 
-    // Validação dos formulários: em vez da bolha do navegador, mostra a mensagem
-    // logo abaixo do campo com problema e destaca a borda em vermelho.
-    function removerErro(el) {
-      el.removeAttribute('aria-invalid')
-      const msg = el.nextElementSibling
-      if (msg?.hasAttribute('data-erro-campo')) msg.remove()
-    }
-    function aoInvalidar(e) {
-      e.preventDefault()
-      const el = e.target
-      removerErro(el)
-      el.setAttribute('aria-invalid', 'true')
-      const msg = document.createElement('p')
-      msg.setAttribute('data-erro-campo', '')
-      msg.setAttribute('role', 'alert')
-      msg.className = 'text-xs text-red-600 mt-1'
-      msg.textContent = el.validationMessage || 'Campo inválido'
-      el.insertAdjacentElement('afterend', msg)
-      if (el.form?.querySelector(':invalid') === el) {
-        el.focus()
-        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
-      }
-    }
-    function aoDigitar(e) {
-      const el = e.target
-      if (el.getAttribute?.('aria-invalid') === 'true' && el.validity?.valid) removerErro(el)
-    }
-
-    fundo.addEventListener('invalid', aoInvalidar, true)
-    fundo.addEventListener('input', aoDigitar)
-    fundo.addEventListener('change', aoDigitar)
     document.addEventListener('keydown', aoTeclar)
     return () => {
-      fundo.removeEventListener('invalid', aoInvalidar, true)
-      fundo.removeEventListener('input', aoDigitar)
-      fundo.removeEventListener('change', aoDigitar)
       document.removeEventListener('keydown', aoTeclar)
       pilha.splice(pilha.indexOf(fundo), 1)
       if (anterior && document.contains(anterior)) anterior.focus()
