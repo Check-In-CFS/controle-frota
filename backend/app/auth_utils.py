@@ -8,6 +8,14 @@ JWT_ALGORITHM = "HS256"
 JWT_EXPIRA_HORAS = 12
 
 
+SEGREDO_MINIMO = 32
+
+
+def segredo_fraco(segredo: str) -> bool:
+    """HS256 com segredo curto pode ser quebrado por força bruta offline a partir de um token."""
+    return len(segredo or "") < SEGREDO_MINIMO
+
+
 def hash_senha(senha: str) -> str:
     return bcrypt.hashpw(senha.encode(), bcrypt.gensalt()).decode()
 

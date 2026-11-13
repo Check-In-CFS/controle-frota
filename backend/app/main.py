@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.auth_deps import obter_usuario_atual, exigir_admin_ou_diretor
+from app.auth_utils import segredo_fraco
 from app.routers import (
     auth,
     usuarios,
@@ -46,6 +47,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if segredo_fraco(os.environ.get("JWT_SECRET", "")):
+    print("[SEGURANÇA] JWT_SECRET ausente ou com menos de 32 caracteres: gere um novo (openssl rand -hex 32).")
+
+
+@app.middleware("http")
+async def cabecalhos_de_seguranca(request, call_next):
+    resposta = await call_next(request)
+    resposta.headers["X-Content-Type-Options"] = "nosniff"
+    resposta.headers["X-Frame-Options"] = "DENY"
+    resposta.headers["Referrer-Policy"] = "no-referrer"
+    # dados da API (notas, valores, usuários) não devem ficar em cache de navegador/proxy
+    if request.url.path != "/":
+        resposta.headers["Cache-Control"] = "no-store"
+    return resposta
+
 
 # /auth (login) fica público -- sem exigir token, é a própria porta de entrada.
 app.include_router(auth.router)

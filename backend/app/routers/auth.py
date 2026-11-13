@@ -4,11 +4,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.auth_deps import UsuarioLogado, obter_usuario_atual
-from app.auth_utils import criar_token, verificar_senha
+from app.auth_utils import criar_token, hash_senha, verificar_senha
 from app.database import get_supabase
 from app.rate_limit import limitar_login
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
+
+_HASH_FALSO = None
+
+
+def _hash_falso() -> str:
+    global _HASH_FALSO
+    if _HASH_FALSO is None:
+        _HASH_FALSO = hash_senha("senha-que-ninguem-usa")
+    return _HASH_FALSO
+
 
 MAX_TENTATIVAS = 5
 BLOQUEIO_MINUTOS = 15
@@ -32,6 +42,8 @@ def login(payload: LoginPayload):
     resp = sb.table("usuarios").select("*").eq("usuario", payload.usuario).eq("ativo", True).execute()
 
     if not resp.data:
+        # Gasta o mesmo tempo de uma senha errada: sem isso, a demora (bcrypt) revela se o usuário existe
+        verificar_senha(payload.senha, _hash_falso())
         # Mesma mensagem genérica de sempre -- não revela se o usuário existe ou não
         raise HTTPException(status_code=401, detail="Usuário ou senha inválidos")
 

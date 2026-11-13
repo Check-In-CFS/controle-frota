@@ -103,6 +103,16 @@ def banco(monkeypatch):
     database.get_supabase.cache_clear()
 
 
+@pytest.fixture(autouse=True)
+def usuarios_ativos(monkeypatch):
+    """Por padrão todo token de teste pertence a um usuário ativo cujo papel é o do próprio token."""
+    from app import auth_deps
+    auth_deps._cache_usuarios.clear()
+    monkeypatch.setattr(auth_deps, "consultar_usuario", lambda uid: {"ativo": True, "papel": None})
+    yield
+    auth_deps._cache_usuarios.clear()
+
+
 @pytest.fixture
 def client():
     return TestClient(app)

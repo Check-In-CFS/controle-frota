@@ -108,7 +108,7 @@ def criar_nota_fiscal(nota: NotaFiscalCreate, usuario: UsuarioLogado = Depends(e
     sb = get_supabase()
 
     # Mecânico só pode anexar foto que ele mesmo enviou (o caminho começa com o id dele)
-    if nota.arquivo_url and usuario.papel != "admin" and not nota.arquivo_url.startswith(f"{usuario.id}/"):
+    if nota.arquivo_url and usuario.papel != "admin" and not fotos_notas.caminho_do_usuario(usuario, nota.arquivo_url):
         raise HTTPException(status_code=403, detail="Foto inválida para esta nota.")
 
     _validar_referencias(sb, nota)

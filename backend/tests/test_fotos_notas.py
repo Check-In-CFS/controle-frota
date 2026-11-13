@@ -136,14 +136,14 @@ def test_saneamento_descarta_dados_sem_sentido():
 
 # ---------- quem pode ver ----------
 
-def nota_com_foto(banco, caminho="5/abc.jpg"):
+def nota_com_foto(banco, caminho="5/" + "a" * 32 + ".jpg"):
     banco.tabelas["notas_fiscais"] = [{"id": 1, "arquivo_url": caminho}]
 
 
 def test_quem_enviou_abre_a_foto(client, banco):
     nota_com_foto(banco)
     r = client.get("/notas-fiscais/1/foto", headers=cabecalho("mecanico", 5))
-    assert r.status_code == 200 and r.json()["url"].startswith("http://storage.falso/5/abc.jpg")
+    assert r.status_code == 200 and r.json()["url"].startswith("http://storage.falso/5/" + "a" * 32 + ".jpg")
 
 
 def test_admin_abre_qualquer_foto(client, banco):
@@ -157,7 +157,7 @@ def test_outro_mecanico_nao_abre_a_foto(client, banco):
 
 
 def test_id_de_usuario_parecido_nao_burla_o_prefixo(client, banco):
-    nota_com_foto(banco, "55/abc.jpg")  # usuário 5 não pode abrir a foto do usuário 55
+    nota_com_foto(banco, "55/" + "b" * 32 + ".jpg")  # usuário 5 não pode abrir a foto do usuário 55
     assert client.get("/notas-fiscais/1/foto", headers=cabecalho("mecanico", 5)).status_code == 403
 
 
@@ -173,7 +173,7 @@ def test_nota_sem_foto_da_404(client, banco):
 
 def test_mecanico_nao_anexa_foto_de_outro_usuario(client, banco):
     corpo = {"numero": "1", "fornecedor_id": 1, "data_emissao": "2026-10-01", "tipo": "peca",
-             "valor_total": 10, "arquivo_url": "99/foto-de-outro.jpg"}
+             "valor_total": 10, "arquivo_url": "99/" + "c" * 32 + ".jpg"}
     r = client.post("/notas-fiscais", json=corpo, headers=cabecalho("mecanico", 5))
     assert r.status_code == 403
 

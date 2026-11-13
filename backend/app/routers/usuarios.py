@@ -24,7 +24,7 @@ class UsuarioOut(BaseModel):
 class UsuarioCreate(BaseModel):
     nome: str
     usuario: str
-    senha: str = Field(..., min_length=6, description="Mínimo 6 caracteres")
+    senha: str = Field(..., min_length=8, description="Mínimo 8 caracteres")
     papel: Papel = "mecanico"
 
 
@@ -32,7 +32,7 @@ class UsuarioUpdate(BaseModel):
     nome: Optional[str] = None
     papel: Optional[Papel] = None
     ativo: Optional[bool] = None
-    senha: Optional[str] = Field(None, min_length=6, description="Se enviado, troca a senha (mínimo 6 caracteres)")
+    senha: Optional[str] = Field(None, min_length=8, description="Se enviado, troca a senha (mínimo 8 caracteres)")
 
 
 @router.get("", response_model=list[UsuarioOut])

@@ -7,6 +7,7 @@ foto direto: o backend confere a permissão e devolve um link temporário assina
 """
 
 import io
+import re
 import uuid
 
 from fastapi import HTTPException
@@ -66,9 +67,18 @@ def guardar_foto(sb, usuario: UsuarioLogado, jpeg: bytes) -> str:
     return caminho
 
 
+_FORMATO_CAMINHO = re.compile(r"(\d+)/[0-9a-f]{32}\.jpg")
+
+
+def caminho_do_usuario(usuario: UsuarioLogado, caminho: str) -> bool:
+    """O caminho é exatamente `<id do usuário>/<32 hex>.jpg`: bloqueia '..', subpastas e prefixos parecidos."""
+    m = _FORMATO_CAMINHO.fullmatch(caminho or "")
+    return bool(m) and m.group(1) == str(usuario.id)
+
+
 def usuario_pode_ver(usuario: UsuarioLogado, caminho: str) -> bool:
-    """Admin vê todas; mecânico só as que ele mesmo enviou."""
-    return usuario.papel == "admin" or caminho.startswith(f"{usuario.id}/")
+    """Admin vê todas; mecânico só as que ele mesmo enviou (no formato exato)."""
+    return usuario.papel == "admin" or caminho_do_usuario(usuario, caminho)
 
 
 def link_temporario(sb, caminho: str) -> str:

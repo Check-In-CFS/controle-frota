@@ -76,14 +76,16 @@ def test_limite_de_tentativas_por_ip(client):
     assert client.post("/auth/login", json={"usuario": "a", "senha": "b"}).status_code == 429
 
 
-def test_limite_por_ip_nao_afeta_outro_ip(client):
+def test_limite_por_ip_nao_afeta_outro_ip(client, monkeypatch):
+    monkeypatch.setenv("CONFIAR_PROXY", "1")
     for _ in range(rate_limit.MAX_TENTATIVAS_POR_JANELA):
         client.post("/auth/login", json={"usuario": "a", "senha": "b"}, headers={"x-forwarded-for": "1.1.1.1"})
     r = client.post("/auth/login", json={"usuario": "a", "senha": "b"}, headers={"x-forwarded-for": "2.2.2.2"})
     assert r.status_code == 401
 
 
-def test_ip_forjado_no_inicio_do_cabecalho_nao_burla_o_limite(client):
+def test_ip_forjado_no_inicio_do_cabecalho_nao_burla_o_limite(client, monkeypatch):
+    monkeypatch.setenv("CONFIAR_PROXY", "1")
     # O proxy confiável acrescenta o IP real no FIM; o cliente só consegue forjar o começo.
     for i in range(rate_limit.MAX_TENTATIVAS_POR_JANELA):
         client.post("/auth/login", json={"usuario": "a", "senha": "b"}, headers={"x-forwarded-for": f"9.9.9.{i}, 3.3.3.3"})

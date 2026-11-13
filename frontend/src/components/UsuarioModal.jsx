@@ -86,10 +86,13 @@ export default function UsuarioModal({ usuario, onClose, onSave }) {
             <input
               required={!usuario}
               type="password"
+              autoComplete="new-password"
+              minLength={8}
               value={form.senha}
               onChange={(e) => atualizarCampo('senha', e.target.value)}
               className="input"
             />
+            <span className="block text-xs text-gray-500 mt-1">Mínimo de 8 caracteres.</span>
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
