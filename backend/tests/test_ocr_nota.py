@@ -103,3 +103,28 @@ def test_tesseract_le_texto_de_uma_imagem_real():
     assert nota.fornecedor_cnpj == "11222333000181"
     assert nota.valor_total == 1350.50
     assert nota.data_emissao == "2026-10-20"
+
+
+def test_ocr_com_espacos_entre_digitos_e_letra_trocada():
+    texto = "CNPJ: 1 1.222.333/0001-81\nNº000.123 Sirie 1\nData de Emissão: 20/1 0/2026\nValor Total da Nota R$ 1.350,50"
+    nota = ocr_nota.interpretar(texto)
+    assert nota.fornecedor_cnpj == "11222333000181"
+    assert nota.serie == "1"
+    assert nota.data_emissao == "2026-10-20"
+
+
+@pytest.mark.skipif(not ocr_nota.disponivel(), reason="Tesseract não instalado")
+@pytest.mark.parametrize("graus", [90, 180, 270])
+def test_foto_deitada_ou_de_cabeca_para_baixo_e_lida(graus):
+    fonte = ImageFont.load_default(size=34)
+    img = Image.new("RGB", (1500, 700), "white")
+    desenho = ImageDraw.Draw(img)
+    linhas = [f"CNPJ: {CNPJ_VALIDO}", "Numero 000123  Serie 1", "Data de Emissao: 20/10/2026",
+              "Valor Total da Nota R$ 1.350,50", "DANFE DOCUMENTO AUXILIAR DA NOTA FISCAL ELETRONICA"]
+    for i, linha in enumerate(linhas):
+        desenho.text((40, 40 + i * 90), linha, fill="black", font=fonte)
+    saida = io.BytesIO()
+    img.rotate(graus, expand=True, fillcolor="white").save(saida, format="JPEG", quality=90)
+    nota = ocr_nota.ler_nota(saida.getvalue())
+    assert nota.fornecedor_cnpj == "11222333000181"
+    assert nota.valor_total == 1350.50

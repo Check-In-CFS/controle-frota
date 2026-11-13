@@ -41,9 +41,21 @@ def _preparar(jpeg: bytes) -> Image.Image:
     return img
 
 
+def _corrigir_orientacao(img: Image.Image) -> Image.Image:
+    """Foto deitada ou de cabeça para baixo: o Tesseract detecta o giro (OSD) e a gente desfaz."""
+    import pytesseract
+    try:
+        osd = pytesseract.image_to_osd(img, config="--psm 0 -c min_characters_to_try=15")
+        m = re.search(r"Rotate:\s*(\d+)", osd)
+        graus = int(m.group(1)) if m else 0
+    except Exception:  # OSD falha em imagem com pouco texto: segue sem girar
+        return img
+    return img.rotate(-graus, expand=True, fillcolor=255) if graus else img
+
+
 def extrair_texto(jpeg: bytes) -> str:
     import pytesseract
-    img = _preparar(jpeg)
+    img = _corrigir_orientacao(_preparar(jpeg))
     return pytesseract.image_to_string(img, lang="por", config="--psm 6")
 
 
@@ -77,7 +89,7 @@ _RE_VALOR = r"R?\$?\s*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})"
 _RE_NUMERO = re.compile(
     r"(?:N[º°o0]\.?|N[úu]mero|NF-?e?\s*(?:N[º°o0]\.?)?)\s*[:.]?\s*(\d{1,3}(?:\.\d{3})+|\d{1,10})(?!\d)", re.I
 )
-_RE_SERIE = re.compile(r"S[ée]rie\s*[:.]?\s*(\d{1,3})(?!\d)", re.I)
+_RE_SERIE = re.compile(r"S[éeií]rie\s*[:.]?\s*(\d{1,3})(?!\d)", re.I)
 
 # do mais específico ao mais genérico
 _ROTULOS_TOTAL = [
@@ -86,11 +98,17 @@ _ROTULOS_TOTAL = [
 ]
 
 
+def _colar_digitos(texto: str) -> str:
+    """'1 1.222.333/0001-81' -> '11.222.333/0001-81' (o OCR costuma separar dígitos com espaço)."""
+    return re.sub(r"(?<=\d) (?=\d)", "", texto)
+
+
 def interpretar(texto: str) -> NotaLida:
     nota = NotaLida()
+    colado = _colar_digitos(texto)
 
     # CNPJ do emitente: o primeiro com dígito verificador válido (o emitente vem antes do destinatário)
-    for m in _RE_CNPJ.finditer(texto):
+    for m in _RE_CNPJ.finditer(colado):
         digitos = "".join(m.groups())
         if _cnpj_valido(digitos):
             nota.fornecedor_cnpj = digitos
@@ -104,7 +122,7 @@ def interpretar(texto: str) -> NotaLida:
     if m:
         nota.serie = m.group(1)
 
-    nota.data_emissao = _achar_data(texto)
+    nota.data_emissao = _achar_data(colado)
 
     for rotulo in _ROTULOS_TOTAL:
         m = re.search(rotulo + r"[^\d\n]{0,25}" + _RE_VALOR, texto, re.I)
