@@ -66,7 +66,7 @@ def test_endpoint_usa_ocr_por_padrao_sem_nenhuma_chave(client, banco, monkeypatc
     monkeypatch.delenv("LEITURA_FOTO", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.setattr(ocr_nota, "disponivel", lambda: True)
-    monkeypatch.setattr(ocr_nota, "extrair_texto", lambda jpeg: TEXTO_DANFE)
+    monkeypatch.setattr(ocr_nota, "_ocr", lambda img, modo: TEXTO_DANFE)
     banco.tabelas["fornecedores"] = [{"id": 4, "nome": "Oficina do João"}]
     saida = io.BytesIO()
     Image.new("RGB", (300, 200), "white").save(saida, format="JPEG")
@@ -188,7 +188,8 @@ def test_filial_da_empresa_e_ignorada_pela_raiz(monkeypatch):
 
 
 def test_data_nao_e_perdida_quando_o_ocr_cola_numeros_vizinhos():
-    assert ocr_nota.interpretar("ri É 141/2026 04/11/2026 14:32:32.").data_emissao == "2026-11-04"
+    texto = "ri É 141/2026 04/11/2026 14:32:32.\n70000 04/11/2026 14:32:31"  # emissão da NFS-e e da DPS
+    assert ocr_nota.interpretar(texto).data_emissao == "2026-11-04"
 
 
 def test_valor_sem_rotulo_usa_o_que_mais_se_repete():
@@ -205,3 +206,25 @@ def test_giro_so_com_confianca(monkeypatch):
     assert saida.size == (200, 100) and not chamadas   # confiança 0.01: não gira
     monkeypatch.setattr(pytesseract, "image_to_osd", lambda img, config="": "Rotate: 90\nOrientation confidence: 4.5\n")
     assert ocr_nota._corrigir_orientacao(img).size == (100, 200)  # confiança alta: gira
+
+
+def test_data_duvidosa_fica_em_branco_em_vez_de_errada():
+    # "05" lido como "08" ao lado do rótulo, e a data certa aparece solta uma vez: conflito -> sem sugestão
+    assert ocr_nota.interpretar("EMISSÃO: 08/11/2026\n05/11/2026 15:14").data_emissao is None
+
+
+def test_data_ao_lado_do_rotulo_vale_quando_ninguem_a_contradiz():
+    assert ocr_nota.interpretar("DATA DA EMISSÃO 11/11/2026").data_emissao == "2026-11-11"
+
+
+def test_lei_da_transparencia_nao_vira_numero_da_nota():
+    assert ocr_nota.interpretar("Lei n° 12.741/2012: Federais").numero is None
+
+
+def test_valor_repetido_escolhe_o_maior_e_nao_a_aliquota():
+    texto = "TOTAL DOS PRODUTOS\n59,87 11,98 187,52\n20,00 20,00 20,00 20,00\nTOTAL\n187,52"
+    assert ocr_nota.interpretar(texto).valor_total == 187.52
+
+
+def test_rotulo_nao_atravessa_a_quebra_de_linha_para_pegar_a_coluna_vizinha():
+    assert ocr_nota.interpretar("TOTAL DOS PRODUTOS\n59,87").valor_total is None

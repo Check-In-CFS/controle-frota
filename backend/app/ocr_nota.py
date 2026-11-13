@@ -57,10 +57,17 @@ def _corrigir_orientacao(img: Image.Image) -> Image.Image:
     return img.rotate(-graus, expand=True, fillcolor=255) if graus else img
 
 
-def extrair_texto(jpeg: bytes) -> str:
+# psm 6 = bloco uniforme (melhor p/ texto corrido); 11 e 4 achham números soltos em quadros e tabelas
+MODOS_TESSERACT = ("--psm 6", "--psm 11", "--psm 4")
+
+
+def _ocr(img: Image.Image, modo: str) -> str:
     import pytesseract
-    img = _corrigir_orientacao(_preparar(jpeg))
-    return pytesseract.image_to_string(img, lang="por", config="--psm 6")
+    return pytesseract.image_to_string(img, lang="por", config=modo)
+
+
+def extrair_texto(jpeg: bytes, modo: str = MODOS_TESSERACT[0]) -> str:
+    return _ocr(_corrigir_orientacao(_preparar(jpeg)), modo)
 
 
 # ---------- interpretação do texto ----------
@@ -91,7 +98,7 @@ def _moeda(texto: str):
 _RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?[/1|Il]?\s?(\d{4})\s?-?\s?(\d{2})(?!\d)")
 _RE_DATA = re.compile(r"(?<!\d)(\d{2})[/.\-](\d{2})[/.\-](\d{4})(?!\d)")
 _RE_VALOR_SEM_RS = r"(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})"
-_RE_VALOR = r"R?\$?\s*" + _RE_VALOR_SEM_RS
+_RE_VALOR = r"R?\$?[ \t]*" + _RE_VALOR_SEM_RS
 _RE_NUMERO = re.compile(
     r"(?:N[º°o0]\.?|N[úu]mero|NF-?e?\s*(?:N[º°o0]\.?)?)\s*[:.]?\s*(\d{1,3}(?:\.\d{3})+|\d{1,10})(?!\d)", re.I
 )
@@ -140,6 +147,18 @@ def _achar_cnpj_emitente(colado: str):
 _RE_NUMERO_DANFE = re.compile(r"(?<![\d.,/-])(\d{1,3}(?:\.\d{3})+)(?![\d.,/-])")
 
 
+def _achar_numero(texto: str):
+    for m in _RE_NUMERO.finditer(texto):
+        antes = texto[max(0, m.start() - 12): m.start()].lower()
+        depois = texto[m.end(): m.end() + 8]
+        if "lei" in antes or re.match(r"\s*/\s*\d{4}", depois):  # "Lei nº 12.741/2012" (NFS-e)
+            continue
+        digitos = re.sub(r"\D", "", m.group(1))
+        if 0 < len(digitos) <= 9:
+            return digitos
+    return None
+
+
 def _achar_numero_danfe(texto: str):
     """Na DANFE o número (ex: 872.637) vem sozinho, poucas linhas antes de 'SÉRIE', sem o prefixo 'Nº'."""
     linhas = texto.splitlines()
@@ -158,17 +177,16 @@ def interpretar(texto: str) -> NotaLida:
 
     nota.fornecedor_cnpj = _achar_cnpj_emitente(colado)
 
-    m = _RE_NUMERO.search(texto)
-    if m:
-        nota.numero = re.sub(r"\D", "", m.group(1))
-    else:
-        nota.numero = _achar_numero_danfe(texto)
+    nota.numero = _achar_numero(texto) or _achar_numero_danfe(texto)
 
     m = _RE_SERIE.search(texto)
     if m:
         nota.serie = m.group(1)
 
-    nota.data_emissao = _achar_data(texto) or _achar_data(colado)
+    nota.data_emissao = _achar_data(texto)
+    if nota.data_emissao is None and not _RE_DATA.search(texto):
+        # sem nenhuma data legível no texto cru: tenta de novo com dígitos soltos colados ("20/1 0/2026")
+        nota.data_emissao = _achar_data(colado)
 
     for rotulo in _ROTULOS_TOTAL:
         m = re.search(rotulo + r"[^\d\n]{0,25}" + _RE_VALOR, texto, re.I)
@@ -185,17 +203,25 @@ def interpretar(texto: str) -> NotaLida:
 
 
 def _valor_mais_repetido(texto: str):
-    contagem: dict[float, int] = {}
-    for m in re.finditer(r"R\$\s*" + _RE_VALOR_SEM_RS, texto):
-        v = _moeda(m.group(1))
-        if v and v > 0:
-            contagem[v] = contagem.get(v, 0) + 1
-    if not contagem:
-        return None
-    return max(contagem, key=lambda v: (contagem[v], v))
+    """Sem rótulo legível: o maior valor com 'R$' (ou, sem R$, o maior valor que apareça 2+ vezes)."""
+    for padrao, minimo in ((r"R\$\s*" + _RE_VALOR_SEM_RS, 1), (r"(?<![\d.,])" + _RE_VALOR_SEM_RS + r"(?![\d,])", 2)):
+        contagem: dict[float, int] = {}
+        for m in re.finditer(padrao, texto):
+            v = _moeda(m.group(1))
+            if v and v > 0:
+                contagem[v] = contagem.get(v, 0) + 1
+        repetidos = [v for v, c in contagem.items() if c >= minimo]
+        if repetidos:
+            return max(repetidos)
+    return None
 
 
 def _achar_data(texto: str):
+    """
+    Data ao lado do rótulo "emissão" só vale se nenhuma outra data a contradiz (emissão, saída e
+    protocolo costumam coincidir); solta no texto, só vale se a MESMA data aparecer 2+ vezes. Um dígito
+    mal lido (05 -> 08) aparece uma vez só, e preferimos deixar em branco a sugerir uma data errada.
+    """
     def valida(m):
         try:
             d = date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
@@ -203,17 +229,44 @@ def _achar_data(texto: str):
             return None
         return d if date(2000, 1, 1) <= d <= date.today() else None
 
-    # prefere a data que vem logo depois de "emissão"
-    for m in re.finditer(r"emiss[ãa]o[^\d\n]{0,20}" + _RE_DATA.pattern, texto, re.I):
-        d = valida(m)
-        if d:
-            return d.isoformat()
+    contagem: dict[date, int] = {}
     for m in _RE_DATA.finditer(texto):
         d = valida(m)
         if d:
-            return d.isoformat()
-    return None
+            contagem[d] = contagem.get(d, 0) + 1
+
+    for m in re.finditer(r"emiss[ãa]o[^\d\n]{0,20}" + _RE_DATA.pattern, texto, re.I):
+        d = valida(m)
+        if d:
+            # se há OUTRAS datas no texto e nenhuma confirma esta, a leitura é duvidosa: melhor em branco
+            if contagem[d] >= 2 or len(contagem) == 1:
+                return d.isoformat()
+            return None
+
+    repetidas = [d for d, c in contagem.items() if c >= 2]
+    return max(repetidas, key=lambda d: contagem[d]).isoformat() if repetidas else None
+
+
+_CAMPOS = ("fornecedor_cnpj", "numero", "serie", "data_emissao", "valor_total")
+
+
+def _completa(nota: NotaLida) -> bool:
+    return all(getattr(nota, c) is not None for c in _CAMPOS)
 
 
 def ler_nota(jpeg: bytes) -> NotaLida:
-    return interpretar(extrair_texto(jpeg))
+    """
+    Lê com o modo padrão; se faltar campo, tenta os outros modos do Tesseract (cada um enxerga
+    coisas diferentes) e junta o resultado campo a campo, sempre preferindo o que veio primeiro.
+    Cada modo é interpretado SEPARADO, para o marcador "DESTINATÁRIO" valer só dentro do seu texto.
+    """
+    img = _corrigir_orientacao(_preparar(jpeg))  # gira uma vez só
+    final = NotaLida()
+    for modo in MODOS_TESSERACT:
+        lida = interpretar(_ocr(img, modo))
+        for campo in _CAMPOS:
+            if getattr(final, campo) is None:
+                setattr(final, campo, getattr(lida, campo))
+        if _completa(final):
+            break
+    return final
