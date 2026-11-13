@@ -40,8 +40,10 @@ def texto_paddle(jpeg: bytes) -> str:
     if _paddle is None:
         _paddle = PaddleOCR(
             lang="pt", use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=False, enable_mkldnn=False,
+            text_det_limit_type="max", text_det_limit_side_len=1280,
         )
-    img = np.array(Image.open(io.BytesIO(jpeg)).convert("RGB"))
+    # mesma correção de giro que o sistema aplica antes do Tesseract (foto deitada)
+    img = np.array(ocr_nota._corrigir_orientacao(Image.open(io.BytesIO(jpeg)).convert("L")).convert("RGB"))
     resultado = _paddle.predict(img)[0]
     caixas = []
     for texto, poly in zip(resultado["rec_texts"], resultado["rec_polys"]):

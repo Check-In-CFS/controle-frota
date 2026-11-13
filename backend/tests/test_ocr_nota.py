@@ -170,3 +170,38 @@ def test_cnpj_da_propria_empresa_e_ignorado_mesmo_sem_marcador(monkeypatch):
 def test_cnpj_do_emitente_antes_do_destinatario_e_o_escolhido():
     texto = "EMITENTE X CNPJ 11.222.333/0001-81\nDESTINATARIO\nHOME CENTER 45.723.174/0001-10"
     assert ocr_nota.interpretar(texto).fornecedor_cnpj == "11222333000181"
+
+
+# ---------- casos tirados das fotos reais de teste (NFS-e e DANFE) ----------
+
+def test_nfse_o_tomador_nao_e_o_fornecedor(monkeypatch):
+    monkeypatch.setenv("EMPRESA_CNPJ", "03.009.406/0001-23")
+    texto = ("PRESTADOR / FORNECEDOR CNPJ 33.144.63310001-22\nTOTAL PECAS E SERVICOS HIDRAULICOS LTDA\n"
+             "TOMADOR / ADQUIRENTE CNPJ 03.009.406/0002-04\nHOME CENTER CASTELO FORTE LTDA")
+    nota = ocr_nota.interpretar(texto)
+    assert nota.fornecedor_cnpj == "33144633000122"  # barra perdida pelo OCR e tomador ignorado
+
+
+def test_filial_da_empresa_e_ignorada_pela_raiz(monkeypatch):
+    monkeypatch.setenv("EMPRESA_CNPJ", "03.009.406/0001-23")   # matriz informada...
+    assert ocr_nota.interpretar("CNPJ 03.009.406/0002-04").fornecedor_cnpj is None  # ...filial 0002 também é ignorada
+
+
+def test_data_nao_e_perdida_quando_o_ocr_cola_numeros_vizinhos():
+    assert ocr_nota.interpretar("ri É 141/2026 04/11/2026 14:32:32.").data_emissao == "2026-11-04"
+
+
+def test_valor_sem_rotulo_usa_o_que_mais_se_repete():
+    texto = "VALOR DA OPERAÇÃO R$ 850,00\nVALOR LIQUIDO R$ 850,00\nR$ 0,00\nISS R$ 12,00"
+    assert ocr_nota.interpretar(texto).valor_total == 850.0
+
+
+def test_giro_so_com_confianca(monkeypatch):
+    import pytesseract
+    chamadas = []
+    monkeypatch.setattr(pytesseract, "image_to_osd", lambda img, config="": "Rotate: 180\nOrientation confidence: 0.01\n")
+    img = Image.new("L", (200, 100), 255)
+    saida = ocr_nota._corrigir_orientacao(img)
+    assert saida.size == (200, 100) and not chamadas   # confiança 0.01: não gira
+    monkeypatch.setattr(pytesseract, "image_to_osd", lambda img, config="": "Rotate: 90\nOrientation confidence: 4.5\n")
+    assert ocr_nota._corrigir_orientacao(img).size == (100, 200)  # confiança alta: gira

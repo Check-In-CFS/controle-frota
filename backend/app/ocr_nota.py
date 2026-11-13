@@ -18,6 +18,7 @@ from PIL import Image, ImageOps
 from app.leitura_nota import NotaLida
 
 LIMITE_PIXELS_OCR = 3000  # lado maior; acima disso o Tesseract só fica mais lento
+CONFIANCA_MINIMA_GIRO = 2.0
 
 
 def disponivel() -> bool:
@@ -48,7 +49,9 @@ def _corrigir_orientacao(img: Image.Image) -> Image.Image:
     try:
         osd = pytesseract.image_to_osd(img, config="--psm 0 -c min_characters_to_try=15")
         m = re.search(r"Rotate:\s*(\d+)", osd)
-        graus = int(m.group(1)) if m else 0
+        confianca = re.search(r"Orientation confidence:\s*([\d.]+)", osd)
+        # só gira quando o Tesseract tem certeza: em foto reta com pouco texto ele "chuta" 180 graus
+        graus = int(m.group(1)) if m and confianca and float(confianca.group(1)) >= CONFIANCA_MINIMA_GIRO else 0
     except Exception:  # OSD falha em imagem com pouco texto: segue sem girar
         return img
     return img.rotate(-graus, expand=True, fillcolor=255) if graus else img
@@ -84,9 +87,10 @@ def _moeda(texto: str):
         return None
 
 
-_RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?/\s?(\d{4})\s?-?\s?(\d{2})(?!\d)")
+_RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?/?\s?(\d{4})\s?-?\s?(\d{2})(?!\d)")
 _RE_DATA = re.compile(r"(?<!\d)(\d{2})[/.\-](\d{2})[/.\-](\d{4})(?!\d)")
-_RE_VALOR = r"R?\$?\s*(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})"
+_RE_VALOR_SEM_RS = r"(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})"
+_RE_VALOR = r"R?\$?\s*" + _RE_VALOR_SEM_RS
 _RE_NUMERO = re.compile(
     r"(?:N[º°o0]\.?|N[úu]mero|NF-?e?\s*(?:N[º°o0]\.?)?)\s*[:.]?\s*(\d{1,3}(?:\.\d{3})+|\d{1,10})(?!\d)", re.I
 )
@@ -104,9 +108,13 @@ def _colar_digitos(texto: str) -> str:
     return re.sub(r"(?<=\d) (?=\d)", "", texto)
 
 
-def _cnpjs_da_empresa() -> set[str]:
-    """CNPJs da própria empresa (compradora), para nunca confundir com o do fornecedor. Env EMPRESA_CNPJ, separados por vírgula."""
-    return {re.sub(r"\D", "", c) for c in os.environ.get("EMPRESA_CNPJ", "").split(",") if c.strip()}
+def _raizes_da_empresa() -> set[str]:
+    """
+    Raiz (8 primeiros dígitos) do CNPJ da própria empresa compradora, para nunca confundir com o do
+    fornecedor. Vale para matriz e todas as filiais (ex: .../0001-23 e .../0002-04 têm a mesma raiz).
+    Env EMPRESA_CNPJ, separados por vírgula.
+    """
+    return {re.sub(r"\D", "", c)[:8] for c in os.environ.get("EMPRESA_CNPJ", "").split(",") if len(re.sub(r"\D", "", c)) >= 8}
 
 
 def _achar_cnpj_emitente(colado: str):
@@ -116,14 +124,14 @@ def _achar_cnpj_emitente(colado: str):
     ignora os CNPJs da empresa e tudo que aparece depois do marcador "DESTINATÁRIO".
     Se o do fornecedor não foi lido, devolve None em vez de arriscar o do comprador.
     """
-    proprios = _cnpjs_da_empresa()
-    marcador = re.search(r"DESTINAT[ÁA]RIO", colado, re.I)
+    proprias = _raizes_da_empresa()
+    marcador = re.search(r"DESTINAT[ÁA]RIO|TOMADOR|ADQUIRENTE", colado, re.I)
     limite = marcador.start() if marcador else len(colado)
     for m in _RE_CNPJ.finditer(colado):
         if m.start() >= limite:
             break
         digitos = "".join(m.groups())
-        if _cnpj_valido(digitos) and digitos not in proprios:
+        if _cnpj_valido(digitos) and digitos[:8] not in proprias:
             return digitos
     return None
 
@@ -159,7 +167,7 @@ def interpretar(texto: str) -> NotaLida:
     if m:
         nota.serie = m.group(1)
 
-    nota.data_emissao = _achar_data(colado)
+    nota.data_emissao = _achar_data(texto) or _achar_data(colado)
 
     for rotulo in _ROTULOS_TOTAL:
         m = re.search(rotulo + r"[^\d\n]{0,25}" + _RE_VALOR, texto, re.I)
@@ -169,7 +177,21 @@ def interpretar(texto: str) -> NotaLida:
                 nota.valor_total = valor
                 break
 
+    if nota.valor_total is None:
+        nota.valor_total = _valor_mais_repetido(texto)
+
     return nota
+
+
+def _valor_mais_repetido(texto: str):
+    contagem: dict[float, int] = {}
+    for m in re.finditer(r"R\$\s*" + _RE_VALOR_SEM_RS, texto):
+        v = _moeda(m.group(1))
+        if v and v > 0:
+            contagem[v] = contagem.get(v, 0) + 1
+    if not contagem:
+        return None
+    return max(contagem, key=lambda v: (contagem[v], v))
 
 
 def _achar_data(texto: str):
