@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Camera, Check, ChevronLeft, ImagePlus, LogOut, Plus, Truck, ShieldAlert, CheckCircle2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Camera, Check, ChevronLeft, ImagePlus, Plus, ShieldAlert, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../services/auth'
 import { api } from '../services/api'
 import { listarMaquinas } from '../services/maquinas'
@@ -9,6 +9,7 @@ import {
   lerFotoNotaFiscal, criarNotaFiscal, extrairMensagemErro,
 } from '../services/notasFiscais'
 import FornecedorModal from '../components/FornecedorModal'
+import CelularCabecalho from '../components/CelularCabecalho'
 import { useErrosDeCampo } from '../hooks/useErrosDeCampo'
 
 const HOJE = new Date().toISOString().slice(0, 10)
@@ -18,8 +19,7 @@ const HOJE = new Date().toISOString().slice(0, 10)
  * Passo 1 -> foto da nota + máquina + motivo.  Passo 2 -> conferir os dados lidos da foto e lançar.
  */
 export default function LancarNota() {
-  const { auth, logout, isDiretor } = useAuth()
-  const navigate = useNavigate()
+  const { isDiretor } = useAuth()
   const raizRef = useRef(null)
   useErrosDeCampo(raizRef)
 
@@ -151,11 +151,6 @@ export default function LancarNota() {
     setDados({ numero: '', serie: '1', data_emissao: HOJE, fornecedor_id: '', tipo: 'peca', valor_total: '' })
   }
 
-  function sair() {
-    logout()
-    navigate('/login')
-  }
-
   const maquinasFiltradas = maquinas.filter((m) =>
     `${m.codigo} ${m.marca || ''} ${m.modelo || ''}`.toLowerCase().includes(filtroMaquina.trim().toLowerCase())
   )
@@ -163,18 +158,7 @@ export default function LancarNota() {
 
   return (
     <div ref={raizRef} className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <Truck className="text-primary shrink-0" size={22} />
-          <div className="min-w-0">
-            <p className="font-semibold text-gray-800 text-sm leading-tight">Lançar nota fiscal</p>
-            <p className="text-xs text-gray-500 truncate">{auth?.nome}</p>
-          </div>
-        </div>
-        <button onClick={sair} className="flex items-center gap-1.5 text-sm text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50">
-          <LogOut size={16} /> Sair
-        </button>
-      </header>
+      <CelularCabecalho titulo="Lançar nota fiscal" />
 
       {isDiretor ? (
         <main className="flex-1 flex flex-col items-center justify-center text-center px-6 text-gray-600">
@@ -190,6 +174,7 @@ export default function LancarNota() {
           <button onClick={novaNota} className="mt-8 w-full max-w-xs bg-primary text-white py-4 rounded-xl text-base font-semibold">
             Lançar outra nota
           </button>
+          <Link to="/celular" className="mt-3 w-full max-w-xs text-center border border-gray-200 text-gray-700 py-4 rounded-xl text-base font-medium bg-white">Voltar ao início</Link>
         </main>
       ) : (
         <main className="flex-1 px-4 py-4 pb-28">

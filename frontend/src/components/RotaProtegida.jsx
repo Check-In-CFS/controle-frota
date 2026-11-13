@@ -2,7 +2,9 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../services/auth'
 import { ehCelular } from '../utils/dispositivo'
 
-export const ROTA_CELULAR = '/lancar-nota'
+export const INICIO_CELULAR = '/celular'
+// No celular só existem estas telas; qualquer outro endereço redireciona para o início do celular.
+const ROTAS_CELULAR = [INICIO_CELULAR, '/lancar-nota', '/registrar-manutencao']
 
 export default function RotaProtegida() {
   const { auth } = useAuth()
@@ -12,9 +14,8 @@ export default function RotaProtegida() {
     return <Navigate to="/login" replace />
   }
 
-  // No celular só existe a tela de lançar nota; qualquer outro endereço redireciona para ela.
-  if (ehCelular() && pathname !== ROTA_CELULAR) {
-    return <Navigate to={ROTA_CELULAR} replace />
+  if (ehCelular() && !ROTAS_CELULAR.includes(pathname)) {
+    return <Navigate to={INICIO_CELULAR} replace />
   }
 
   return <Outlet />

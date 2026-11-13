@@ -81,3 +81,22 @@ def test_admin_edita_nota_fiscal(client):
 
 def test_mecanico_nao_exclui_nota_fiscal(client):
     assert client.delete("/notas-fiscais/1", headers=cabecalho("mecanico")).status_code == 403
+
+
+# ---------- Manutenções: o mecânico registra (pelo celular), o diretor só consulta ----------
+
+@pytest.mark.parametrize("papel,esperado", [("mecanico", 422), ("admin", 422), ("diretor", 403)])
+def test_registrar_manutencao_por_papel(client, papel, esperado):
+    assert client.post("/manutencoes", json={}, headers=cabecalho(papel)).status_code == esperado
+
+
+def test_mecanico_nao_exclui_manutencao(client):
+    assert client.delete("/manutencoes/1", headers=cabecalho("mecanico")).status_code == 403
+
+
+def test_registro_valido_de_manutencao_do_celular_passa_na_validacao(client, banco):
+    banco.tabelas["maquinas"] = [{"id": 3, "codigo": "TR-01", "situacao": "ativa"}]
+    corpo = {"maquina_id": 3, "data": "2026-11-10", "tipo": "corretiva", "descricao": "Troca do filtro hidráulico",
+             "horimetro": 1520.5, "km": None, "status": "concluida"}
+    r = client.post("/manutencoes", json=corpo, headers=cabecalho("mecanico"))
+    assert r.status_code not in (401, 403, 422)

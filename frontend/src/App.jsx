@@ -19,6 +19,8 @@ const Financeiro = lazy(() => import('./pages/Financeiro'))
 const CentralDeLogs = lazy(() => import('./pages/CentralDeLogs'))
 const Usuarios = lazy(() => import('./pages/Usuarios'))
 const LancarNota = lazy(() => import('./pages/LancarNota'))
+const CelularInicio = lazy(() => import('./pages/CelularInicio'))
+const RegistrarManutencao = lazy(() => import('./pages/RegistrarManutencao'))
 const NaoEncontrada = lazy(() => import('./pages/NaoEncontrada'))
 
 export default function App() {
@@ -31,7 +33,9 @@ export default function App() {
           <Route path="/login" element={<Login />} />
 
           <Route element={<RotaProtegida />}>
+            <Route path="celular" element={<Suspense fallback={<Carregando linhas={5} />}><CelularInicio /></Suspense>} />
             <Route path="lancar-nota" element={<Suspense fallback={<Carregando linhas={5} />}><LancarNota /></Suspense>} />
+            <Route path="registrar-manutencao" element={<Suspense fallback={<Carregando linhas={5} />}><RegistrarManutencao /></Suspense>} />
             <Route element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="maquinas" element={<Maquinas />} />
