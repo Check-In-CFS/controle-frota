@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from app.auth_deps import exigir_admin, exigir_operacional, obter_usuario_atual, UsuarioLogado
 from app.auditoria import registrar_log
 from app.database import get_supabase
-from app import fotos_notas, leitura_nota
+from app import consulta_cnpj, fotos_notas, leitura_nota
 from app.rate_limit import limitar_por_chave
 from app.maquina_guard import validar_maquina_permite_lancamento
 from app.schemas.notas_fiscais import NotaFiscal, NotaFiscalCreate, NotaFiscalUpdate
@@ -311,6 +311,32 @@ def importar_xml_nfe(arquivo: UploadFile = File(...), usuario: UsuarioLogado = D
 LEITURAS_POR_HORA = 30
 
 
+def _cadastrar_fornecedor_da_foto(sb, usuario: UsuarioLogado, dados: dict) -> None:
+    """
+    Fornecedor lido da foto e ainda não cadastrado: cadastra na hora. O nome vem da consulta pública
+    do CNPJ; se a consulta falhar, entra como "Fornecedor <CNPJ>" (nome provisório, o admin corrige).
+    O CNPJ só chega aqui se passou na conferência do dígito verificador.
+    """
+    cnpj = dados["fornecedor_cnpj"]
+    try:
+        empresa = consulta_cnpj.buscar_empresa(cnpj)
+        novo = sb.table("fornecedores").insert({
+            "nome": empresa["nome"] if empresa else f"Fornecedor {cnpj}",
+            "cnpj": cnpj,
+            "telefone": empresa["telefone"] if empresa else None,
+            "email": empresa["email"] if empresa else None,
+        }).execute().data[0]
+    except Exception as exc:  # nunca derruba o envio da foto
+        print(f"[notas_fiscais] não foi possível cadastrar o fornecedor {cnpj}: {exc}")
+        return
+    dados["fornecedor_id"] = novo["id"]
+    dados["fornecedor_nome"] = novo["nome"]
+    dados["fornecedor_cadastrado"] = True
+    dados["fornecedor_nome_provisorio"] = empresa is None
+    detalhe = "pela consulta do CNPJ" if empresa else "com nome provisório (consulta do CNPJ indisponível)"
+    registrar_log(usuario, "criar", "fornecedor", novo["id"], f"Fornecedor {novo['nome']} cadastrado automaticamente a partir da foto de uma nota, {detalhe}", dados_depois=novo)
+
+
 @router.post("/ler-foto")
 def ler_foto_nota(arquivo: UploadFile = File(...), usuario: UsuarioLogado = Depends(exigir_operacional)):
     """
@@ -342,13 +368,17 @@ def ler_foto_nota(arquivo: UploadFile = File(...), usuario: UsuarioLogado = Depe
             aviso = "Não consegui ler a foto. Ela foi guardada; preencha os dados manualmente."
 
     if dados:
-        # tenta casar o emitente com um fornecedor já cadastrado (pelo CNPJ)
         dados["fornecedor_id"] = None
+        dados["fornecedor_cadastrado"] = False
+        dados["fornecedor_nome_provisorio"] = False
         if dados["fornecedor_cnpj"]:
+            # casa o emitente com um fornecedor já cadastrado (pelo CNPJ); se não houver, cadastra
             achou = sb.table("fornecedores").select("id, nome").eq("cnpj", dados["fornecedor_cnpj"]).execute()
             if achou.data:
                 dados["fornecedor_id"] = achou.data[0]["id"]
                 dados["fornecedor_nome"] = achou.data[0]["nome"]
+            else:
+                _cadastrar_fornecedor_da_foto(sb, usuario, dados)
         registrar_log(usuario, "criar", "nota_fiscal", None, "Foto de nota fiscal enviada e lida")
 
     return {"arquivo_url": caminho, "dados": dados, "aviso": aviso}

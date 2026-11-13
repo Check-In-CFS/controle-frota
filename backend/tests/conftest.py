@@ -43,6 +43,12 @@ class ConsultaFalsa:
         self.banco.consultas.append(self)
         if self._op == "update":
             self.banco.atualizacoes.append((self.nome, self._payload))
+        if self._op == "insert" and isinstance(self._payload, dict):
+            tabela = self.banco.tabelas.setdefault(self.nome, [])
+            linha = {"id": len(tabela) + 1, **self._payload}
+            tabela.append(linha)
+            self.banco.inseridos.append((self.nome, linha))
+            return Resposta([linha])
         return Resposta(list(self.banco.tabelas.get(self.nome, [])))
 
 
@@ -77,6 +83,7 @@ class BancoFalso:
         self.tabelas = {}
         self.consultas = []
         self.atualizacoes = []
+        self.inseridos = []
         self.arquivos = {}
         self.buckets = {}
         self.storage = StorageFalso(self)

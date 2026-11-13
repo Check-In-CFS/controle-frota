@@ -34,6 +34,7 @@ export default function LancarNota() {
   const [lendo, setLendo] = useState(false)
   const [avisoFoto, setAvisoFoto] = useState(null)
   const [fornecedorLido, setFornecedorLido] = useState(null)
+  const [fornecedorNovo, setFornecedorNovo] = useState(null) // fornecedor cadastrado automaticamente a partir da foto
 
   const [maquinaId, setMaquinaId] = useState('')
   const [motivo, setMotivo] = useState('')
@@ -79,6 +80,11 @@ export default function LancarNota() {
         ...(d?.fornecedor_id ? { fornecedor_id: d.fornecedor_id } : {}),
       }))
       if (d?.itens?.length) setItens(d.itens)
+      // fornecedor encontrado ou cadastrado agora pelo servidor: garante que ele esteja na lista do campo
+      if (d?.fornecedor_id) {
+        setFornecedores((atual) => (atual.some((f) => f.id === d.fornecedor_id) ? atual : [...atual, { id: d.fornecedor_id, nome: d.fornecedor_nome }]))
+      }
+      setFornecedorNovo(d?.fornecedor_cadastrado ? { nome: d.fornecedor_nome, provisorio: d.fornecedor_nome_provisorio } : null)
       setFornecedorLido(d && !d.fornecedor_id ? (d.fornecedor_nome || d.fornecedor_cnpj || null) : null)
     } catch (err) {
       setArquivoUrl('')
@@ -140,7 +146,7 @@ export default function LancarNota() {
   }
 
   function novaNota() {
-    setPasso(0); setLancada(null); setFotoUrl(null); setArquivoUrl(''); setAvisoFoto(null); setFornecedorLido(null)
+    setPasso(0); setLancada(null); setFotoUrl(null); setArquivoUrl(''); setAvisoFoto(null); setFornecedorLido(null); setFornecedorNovo(null)
     setMaquinaId(''); setMotivo(''); setDetalhe(''); setItens([]); setErro(null)
     setDados({ numero: '', serie: '1', data_emissao: HOJE, fornecedor_id: '', tipo: 'peca', valor_total: '' })
   }
@@ -323,6 +329,12 @@ export default function LancarNota() {
                     {fornecedores.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
                   </select>
                 </label>
+                {fornecedorNovo && String(dados.fornecedor_id) !== '' && (
+                  <p className="text-xs text-green-700 mt-1">
+                    ✓ Fornecedor <strong>{fornecedorNovo.nome}</strong> cadastrado automaticamente pelo CNPJ da nota.
+                    {fornecedorNovo.provisorio && ' O nome é provisório; peça ao administrador para corrigir.'}
+                  </p>
+                )}
                 {fornecedorLido && !dados.fornecedor_id && (
                   <p className="text-xs text-gray-600 mt-1">Lido na foto: <strong>{fornecedorLido}</strong> — não está cadastrado.</p>
                 )}

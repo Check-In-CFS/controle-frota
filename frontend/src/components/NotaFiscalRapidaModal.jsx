@@ -125,7 +125,13 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
         ...(d?.fornecedor_id ? { fornecedor_id: d.fornecedor_id } : {}),
         ...(d?.itens?.length ? { itens: d.itens } : {}),
       }))
+      if (d?.fornecedor_id && !listaFornecedores.some((f) => f.id === d.fornecedor_id)) {
+        const novo = { id: d.fornecedor_id, nome: d.fornecedor_nome }
+        setListaFornecedores((atual) => [...atual, novo])
+        onFornecedorCriado?.(novo)
+      }
       setFotoInfo({
+        cadastrado: d?.fornecedor_cadastrado ? { nome: d.fornecedor_nome, provisorio: d.fornecedor_nome_provisorio } : null,
         aviso: r.aviso,
         lido: !!d,
         fornecedorNaoCadastrado: d && !d.fornecedor_id ? (d.fornecedor_nome || d.fornecedor_cnpj || null) : null,
@@ -225,6 +231,9 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
                   {fotoInfo && (
                     <p className="text-xs text-gray-600 text-center">
                       {fotoInfo.aviso || 'Foto lida. Os campos que não deu para ler ficam em branco — confira tudo antes de continuar.'}
+                      {fotoInfo.cadastrado && (
+                        <> Fornecedor <strong>{fotoInfo.cadastrado.nome}</strong> cadastrado automaticamente pelo CNPJ.{fotoInfo.cadastrado.provisorio && ' Nome provisório: peça ao administrador para corrigir.'}</>
+                      )}
                       {fotoInfo.fornecedorNaoCadastrado && (
                         <> Fornecedor (CNPJ) lido: <strong>{fotoInfo.fornecedorNaoCadastrado}</strong> (não está cadastrado — escolha outro ou cadastre).</>
                       )}

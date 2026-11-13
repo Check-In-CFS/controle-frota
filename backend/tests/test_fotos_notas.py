@@ -176,3 +176,52 @@ def test_mecanico_nao_anexa_foto_de_outro_usuario(client, banco):
              "valor_total": 10, "arquivo_url": "99/foto-de-outro.jpg"}
     r = client.post("/notas-fiscais", json=corpo, headers=cabecalho("mecanico", 5))
     assert r.status_code == 403
+
+
+# ---------- fornecedor lido da foto e ainda não cadastrado: cadastra sozinho ----------
+
+def test_fornecedor_novo_e_cadastrado_com_o_nome_da_consulta_do_cnpj(client, banco, leitura_ligada, monkeypatch):
+    from app import consulta_cnpj
+    monkeypatch.setattr(consulta_cnpj, "buscar_empresa",
+                        lambda cnpj: {"nome": "OFICINA DO JOAO LTDA", "telefone": "6133331111", "email": "a@b.com"})
+    banco.tabelas["fornecedores"] = []
+    d = enviar(client).json()["dados"]
+    assert d["fornecedor_cadastrado"] is True and d["fornecedor_nome_provisorio"] is False
+    assert d["fornecedor_nome"] == "OFICINA DO JOAO LTDA" and d["fornecedor_id"] is not None
+    nome, linha = [i for i in banco.inseridos if i[0] == "fornecedores"][0]
+    assert linha["cnpj"] == "12345678000199" and linha["telefone"] == "6133331111"
+
+
+def test_consulta_do_cnpj_fora_do_ar_cadastra_com_nome_provisorio(client, banco, leitura_ligada, monkeypatch):
+    from app import consulta_cnpj
+    monkeypatch.setattr(consulta_cnpj, "buscar_empresa", lambda cnpj: None)
+    banco.tabelas["fornecedores"] = []
+    d = enviar(client).json()["dados"]
+    assert d["fornecedor_cadastrado"] is True and d["fornecedor_nome_provisorio"] is True
+    assert d["fornecedor_nome"] == "Fornecedor 12345678000199"
+
+
+def test_fornecedor_ja_cadastrado_nao_e_duplicado(client, banco, leitura_ligada, monkeypatch):
+    from app import consulta_cnpj
+    chamadas = []
+    monkeypatch.setattr(consulta_cnpj, "buscar_empresa", lambda cnpj: chamadas.append(cnpj))
+    banco.tabelas["fornecedores"] = [{"id": 9, "nome": "Já cadastrado"}]
+    d = enviar(client).json()["dados"]
+    assert d["fornecedor_id"] == 9 and d["fornecedor_cadastrado"] is False
+    assert chamadas == [] and not [i for i in banco.inseridos if i[0] == "fornecedores"]
+
+
+def test_sem_cnpj_lido_nao_cadastra_nada(client, banco, monkeypatch):
+    monkeypatch.setenv("LEITURA_FOTO", "ia")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    monkeypatch.setattr(leitura_nota, "ler_nota", lambda jpeg: leitura_nota.NotaLida(numero="55"))
+    d = enviar(client).json()["dados"]
+    assert d["fornecedor_id"] is None and not [i for i in banco.inseridos if i[0] == "fornecedores"]
+
+
+def test_consulta_cnpj_desligavel_e_so_aceita_14_digitos(monkeypatch):
+    from app import consulta_cnpj
+    monkeypatch.setenv("CONSULTA_CNPJ", "desligada")
+    assert consulta_cnpj.buscar_empresa("12345678000199") is None
+    monkeypatch.setenv("CONSULTA_CNPJ", "ligada")
+    assert consulta_cnpj.buscar_empresa("123") is None
