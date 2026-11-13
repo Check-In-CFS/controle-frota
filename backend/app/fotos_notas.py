@@ -42,29 +42,49 @@ def normalizar_imagem(conteudo: bytes) -> bytes:
         raise HTTPException(status_code=422, detail="O arquivo enviado não é uma foto válida (use JPG, PNG ou WebP).")
 
 
+def _ja_existe(exc: Exception) -> bool:
+    texto = str(exc).lower()
+    return "already exists" in texto or "bucketalreadyexists" in texto or "duplicate" in texto
+
+
 def garantir_bucket(sb) -> None:
+    """
+    Garante o bucket privado. Usa list_buckets: o get_bucket da biblioteca (storage3 0.8) quebra com
+    TypeError quando o Supabase devolve campos novos (ex: versioning_status), o que fazia o envio
+    achar que o bucket não existia, tentar criar de novo e falhar com "BucketAlreadyExists".
+    """
     global _bucket_garantido
     if _bucket_garantido:
         return
+    existe = False
     try:
-        sb.storage.get_bucket(BUCKET)
-    except Exception:
-        sb.storage.create_bucket(
-            BUCKET,
-            options={"public": False, "file_size_limit": 5 * 1024 * 1024, "allowed_mime_types": ["image/jpeg"]},
-        )
+        existe = any(getattr(b, "name", None) == BUCKET or getattr(b, "id", None) == BUCKET for b in sb.storage.list_buckets())
+    except Exception as exc:
+        print(f"[fotos_notas] não consegui listar os buckets ({exc}); vou tentar criar")
+    if not existe:
+        try:
+            sb.storage.create_bucket(
+                BUCKET,
+                options={"public": False, "file_size_limit": 5 * 1024 * 1024, "allowed_mime_types": ["image/jpeg"]},
+            )
+        except Exception as exc:
+            if not _ja_existe(exc):  # criado por outra requisição ao mesmo tempo: tudo certo
+                raise
     _bucket_garantido = True
 
 
 def guardar_foto(sb, usuario: UsuarioLogado, jpeg: bytes) -> str:
     caminho = f"{usuario.id}/{uuid.uuid4().hex}.jpg"
-    try:
-        garantir_bucket(sb)
-        sb.storage.from_(BUCKET).upload(caminho, jpeg, {"content-type": "image/jpeg"})
-    except Exception as exc:
-        print(f"[fotos_notas] falha ao guardar foto: {exc}")
-        raise HTTPException(status_code=502, detail="Não foi possível guardar a foto agora. Tente novamente.")
-    return caminho
+    ultimo_erro = None
+    for _tentativa in range(2):  # a 2ª cobre conexão reaproveitada que o servidor já encerrou
+        try:
+            garantir_bucket(sb)
+            sb.storage.from_(BUCKET).upload(caminho, jpeg, {"content-type": "image/jpeg"})
+            return caminho
+        except Exception as exc:
+            ultimo_erro = exc
+    print(f"[fotos_notas] falha ao guardar foto: {type(ultimo_erro).__name__}: {ultimo_erro}")
+    raise HTTPException(status_code=502, detail="Não foi possível guardar a foto agora. Tente novamente.")
 
 
 _FORMATO_CAMINHO = re.compile(r"(\d+)/[0-9a-f]{32}\.jpg")

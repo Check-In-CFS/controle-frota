@@ -67,11 +67,15 @@ class StorageFalso:
     def __init__(self, banco):
         self.banco = banco
 
-    def get_bucket(self, nome):
-        if nome not in self.banco.buckets:
-            raise Exception("bucket não existe")
+    def get_bucket(self, nome):  # como na biblioteca real com o Supabase atual: sempre quebra
+        raise TypeError("SyncBucket.__init__() got an unexpected keyword argument 'versioning_status'")
+
+    def list_buckets(self):
+        return [type("B", (), {"name": n, "id": n})() for n in self.banco.buckets]
 
     def create_bucket(self, nome, options=None):
+        if nome in self.banco.buckets:
+            raise Exception("{'statusCode': 400, 'error': 'Duplicate', 'message': 'The resource already exists', 'code': 'BucketAlreadyExists'}")
         self.banco.buckets[nome] = options
 
     def from_(self, nome):

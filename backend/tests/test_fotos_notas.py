@@ -225,3 +225,45 @@ def test_consulta_cnpj_desligavel_e_so_aceita_14_digitos(monkeypatch):
     assert consulta_cnpj.buscar_empresa("12345678000199") is None
     monkeypatch.setenv("CONSULTA_CNPJ", "ligada")
     assert consulta_cnpj.buscar_empresa("123") is None
+
+
+# ---------- regressão: bucket que já existe (erro real visto no celular: "Não foi possível guardar a foto") ----------
+
+def test_bucket_ja_existente_nao_impede_o_envio(client, banco, leitura_ligada):
+    banco.buckets[fotos_notas.BUCKET] = {"public": False}   # criado em um envio anterior
+    r = enviar(client)
+    assert r.status_code == 200 and r.json()["arquivo_url"] in banco.arquivos
+
+
+def test_envios_seguidos_com_bucket_existente(client, banco, leitura_ligada):
+    assert enviar(client).status_code == 200
+    fotos_notas._bucket_garantido = False   # nova instância do servidor
+    assert enviar(client).status_code == 200
+
+
+def test_conexao_encerrada_pelo_servidor_tem_nova_tentativa(client, banco, leitura_ligada, monkeypatch):
+    original = banco.storage.from_
+    chamadas = {"n": 0}
+
+    def instavel(nome):
+        bucket = original(nome)
+        enviar_real = bucket.upload
+
+        def upload(caminho, conteudo, opcoes=None):
+            chamadas["n"] += 1
+            if chamadas["n"] == 1:
+                raise RuntimeError("ConnectionTerminated")
+            return enviar_real(caminho, conteudo, opcoes)
+        bucket.upload = upload
+        return bucket
+
+    monkeypatch.setattr(banco.storage, "from_", instavel)
+    r = enviar(client)
+    assert r.status_code == 200 and chamadas["n"] == 2
+
+
+def test_falha_persistente_do_storage_da_502(client, banco, monkeypatch):
+    def quebrado(nome):
+        raise RuntimeError("storage fora do ar")
+    monkeypatch.setattr(banco.storage, "from_", quebrado)
+    assert enviar(client).status_code == 502
