@@ -95,12 +95,12 @@ def _moeda(texto: str):
 
 
 # a barra do CNPJ às vezes some ou vira "1", "|", "I" ou "l" no OCR; o dígito verificador filtra os falsos positivos
-_RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?[/1|Il]?\s?(\d{4})\s?-?\s?(\d{2})(?!\d)")
+_RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?[/1|Il\[\]\\]?\s?(\d{4})\s?[-:.]?\s?(\d{2})(?!\d)")
 _RE_DATA = re.compile(r"(?<!\d)(\d{2})[/.\-](\d{2})[/.\-](\d{4})(?!\d)")
 _RE_VALOR_SEM_RS = r"(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})"
 _RE_VALOR = r"R?\$?[ \t]*" + _RE_VALOR_SEM_RS
 _RE_NUMERO = re.compile(
-    r"(?:N[º°o0]\.?|N[úu]mero|NF-?e?\s*(?:N[º°o0]\.?)?)\s*[:.]?\s*(\d{1,3}(?:\.\d{3})+|\d{1,10})(?!\d)", re.I
+    r"(?:N[º°o0]\.?|N[úu]mero|NF-?e?\s*(?:N[º°o0]\.?)?)\s*[:.]?\s*(\d{1,3}(?:[.\s]\d{3})+|\d{1,10})(?!\d)", re.I
 )
 _RE_SERIE = re.compile(r"S[éeií]rie\s*[:.]?\s*(\d{1,3})(?!\d)", re.I)
 
@@ -135,28 +135,62 @@ def _achar_cnpj_emitente(colado: str):
     proprias = _raizes_da_empresa()
     marcador = re.search(r"DESTINAT[ÁA]RIO|TOMADOR|ADQUIRENTE", colado, re.I)
     limite = marcador.start() if marcador else len(colado)
+
+    validos = []  # (posição, dígitos) de todo CNPJ válido que não é da própria empresa
     for m in _RE_CNPJ.finditer(colado):
-        if m.start() >= limite:
-            break
         digitos = "".join(m.groups())
         if _cnpj_valido(digitos) and digitos[:8] not in proprias:
-            return digitos
-    return None
+            validos.append((m.start(), digitos))
+
+    antes_do_destinatario = [d for pos, d in validos if pos < limite]
+    if antes_do_destinatario:
+        return antes_do_destinatario[0]
+    # A ordem de leitura do OCR nem sempre segue a página (o emitente pode vir "depois" do destinatário).
+    # Se sabemos qual é o CNPJ da empresa compradora, qualquer outro CNPJ válido do texto é do fornecedor.
+    return validos[0][1] if proprias and validos else None
 
 
 _RE_NUMERO_DANFE = re.compile(r"(?<![\d.,/-])(\d{1,3}(?:\.\d{3})+)(?![\d.,/-])")
 
 
+def _eh_nfse(texto: str) -> bool:
+    """NF de serviço (DANFSe): layout próprio, com rótulos acima dos valores."""
+    return bool(re.search(r"DANFSe|NFS-?\s?[eo]\b|Nota\s+Fiscal\s+de\s+Servi", texto, re.I))
+
+
+def _achar_numero_nfse(texto: str):
+    """
+    Na NFS-e o rótulo "NÚMERO DA NFS-e" fica ACIMA do valor, que vem numa das linhas seguintes
+    (às vezes depois de outras: data, QR code). Pega o primeiro número inteiro sozinho numa linha,
+    parando se chegar no rótulo "NÚMERO DA DPS" (outro número, que não é o da nota).
+    """
+    m = re.search(r"N[úu]MERO\s+DA\s+NFS-?\s?[eo0]", texto, re.I)
+    if not m:
+        return None
+    resto = texto[m.end():].splitlines()
+    for i, linha in enumerate(resto[:9]):
+        if re.search(r"N[úu]MERO\s+DA\s+DPS", linha, re.I):
+            break
+        achou = re.fullmatch(r"\W*(\d{1,9})\W*", linha) if i else re.match(r"\s*(\d{1,9})(?!\S)", linha)
+        if achou:
+            return achou.group(1)
+    return None
+
+
 def _achar_numero(texto: str):
+    """Número da NF-e pelo prefixo "Nº": entre as leituras, a que mais se repete (empate: a mais longa)."""
+    contagem: dict[str, int] = {}
     for m in _RE_NUMERO.finditer(texto):
         antes = texto[max(0, m.start() - 12): m.start()].lower()
         depois = texto[m.end(): m.end() + 8]
-        if "lei" in antes or re.match(r"\s*/\s*\d{4}", depois):  # "Lei nº 12.741/2012" (NFS-e)
+        if "lei" in antes or re.match(r"\s*/\s*\d{4}", depois):  # "Lei nº 12.741/2012"
             continue
         digitos = re.sub(r"\D", "", m.group(1))
         if 0 < len(digitos) <= 9:
-            return digitos
-    return None
+            contagem[digitos] = contagem.get(digitos, 0) + 1
+    if not contagem:
+        return None
+    return max(contagem, key=lambda d: (contagem[d], len(d)))
 
 
 def _achar_numero_danfe(texto: str):
@@ -175,9 +209,15 @@ def interpretar(texto: str) -> NotaLida:
     nota = NotaLida()
     colado = _colar_digitos(texto)
 
-    nota.fornecedor_cnpj = _achar_cnpj_emitente(colado)
+    # texto cru primeiro: colar dígitos pode emendar o CNPJ com o número vizinho ("…0131 08.933.691")
+    nota.fornecedor_cnpj = _achar_cnpj_emitente(texto) or _achar_cnpj_emitente(colado)
 
-    nota.numero = _achar_numero(texto) or _achar_numero_danfe(texto)
+    if _eh_nfse(texto):
+        # em NFS-e o "Nº" solto costuma ser a Lei 12.741 ou outro número: só vale o do rótulo
+        nota.numero = _achar_numero_nfse(texto)
+        nota.tipo = "servico"
+    else:
+        nota.numero = _achar_numero(texto) or _achar_numero_danfe(texto)
 
     m = _RE_SERIE.search(texto)
     if m:

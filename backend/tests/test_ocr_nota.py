@@ -228,3 +228,61 @@ def test_valor_repetido_escolhe_o_maior_e_nao_a_aliquota():
 
 def test_rotulo_nao_atravessa_a_quebra_de_linha_para_pegar_a_coluna_vizinha():
     assert ocr_nota.interpretar("TOTAL DOS PRODUTOS\n59,87").valor_total is None
+
+
+# ---------- NF de serviço (DANFSe): layout próprio, rótulo ACIMA do valor ----------
+
+TEXTO_NFSE = """
+DANFSe v2.0
+Documento Auxiliar da NFS-e
+NÚMERO DA NFS-o
+04/11/2026
+A autenticidade desta NFS-e
+1050
+DATA E HORA DA EMISSÃO DA DPS
+NÚMERO DA DPS
+14
+PRESTADOR / FORNECEDOR CNPJ 33.144.63310001-22
+TOMADOR / ADQUIRENTE CNPJ 03.009.406/0002-04
+Tributos cfe. Lei
+nº 12774
+VALOR DA OPERAÇÃO / SERVIÇO
+R$ 850,00
+VALOR LÍQUIDO DA NFS-e
+R$ 850,00
+"""
+
+
+def test_nfse_le_numero_pelo_rotulo_e_marca_como_servico():
+    nota = ocr_nota.interpretar(TEXTO_NFSE)
+    assert nota.numero == "1050"            # não o 14 da DPS nem o "nº 12774" da lei
+    assert nota.tipo == "servico"
+    assert nota.valor_total == 850.0
+    assert nota.fornecedor_cnpj == "33144633000122"
+
+
+def test_nfse_sem_numero_legivel_fica_em_branco_em_vez_de_pegar_numero_solto():
+    nota = ocr_nota.interpretar("DANFSe v2.0\nLei nº 12774\nR$ 100,00")
+    assert nota.numero is None
+
+
+def test_danfe_nao_e_marcada_como_servico():
+    assert ocr_nota.interpretar(TEXTO_DANFE).tipo is None
+
+
+def test_numero_da_danfe_com_milhar_separado_por_espaco_e_maioria():
+    texto = "Nº 000.037 184 !\nSÉRIE 001\nN 000.037.184\nNº 000.037"
+    assert ocr_nota.interpretar(texto).numero == "000037184"
+
+
+def test_cnpj_no_texto_cru_quando_colar_digitos_o_emendaria_ao_vizinho():
+    texto = "0748959600131 08.933.691 [0001:98 RIU."   # inscrição estadual + CNPJ com "/" lido como "[" e "-" como ":"
+    assert ocr_nota.interpretar(texto).fornecedor_cnpj == "08933691000198"
+
+
+def test_emitente_depois_do_destinatario_na_ordem_do_ocr_com_empresa_configurada(monkeypatch):
+    monkeypatch.setenv("EMPRESA_CNPJ", "03.009.406/0001-23")
+    texto = "DESTINATÁRIO / REMETENTE\nHOME CENTER 03.009.406/0002-04\nCNPJ 08.933.691/0001-98"
+    assert ocr_nota.interpretar(texto).fornecedor_cnpj == "08933691000198"
+    monkeypatch.delenv("EMPRESA_CNPJ")
+    assert ocr_nota.interpretar(texto).fornecedor_cnpj is None   # sem saber quem é o comprador, não arrisca
