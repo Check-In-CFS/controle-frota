@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { X, Upload, Plus, Trash2, ChevronLeft, Check, FileCheck2, Camera } from 'lucide-react'
+import { X, Upload, Plus, Trash2, ChevronLeft, Check, FileCheck2, Camera, ImagePlus } from 'lucide-react'
 import { TIPOS_NOTA, importarXmlNotaFiscal, lerFotoNotaFiscal, extrairMensagemErro } from '../services/notasFiscais'
 import { api } from '../services/api'
 import FornecedorModal from './FornecedorModal'
@@ -43,7 +43,6 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
   const [lendoFoto, setLendoFoto] = useState(false)
   const [fotoInfo, setFotoInfo] = useState(null)
   const inputXmlRef = useRef(null)
-  const inputFotoRef = useRef(null)
 
   const temItens = form.itens.length > 0
   const totalItens = form.itens.reduce((s, i) => s + (Number(i.quantidade) || 0) * (Number(i.valor_unitario) || 0), 0)
@@ -108,6 +107,7 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
 
   async function handleFoto(e) {
     const arquivo = e.target.files?.[0]
+    e.target.value = ''
     if (!arquivo) return
     setErro(null)
     setLendoFoto(true)
@@ -134,7 +134,6 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
       setErro(extrairMensagemErro(err, 'Não foi possível enviar a foto. Tente de novo.'))
     } finally {
       setLendoFoto(false)
-      if (inputFotoRef.current) inputFotoRef.current.value = ''
     }
   }
 
@@ -209,14 +208,20 @@ export default function NotaFiscalRapidaModal({ maquinas, fornecedores, onClose,
             {passo === 0 && (
               <>
                 <div className="rounded-xl border border-dashed border-primary/40 bg-indigo-50/50 p-3 space-y-1">
-                  <input ref={inputFotoRef} type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" id="foto-nota" />
-                  <label
-                    htmlFor="foto-nota"
-                    className="flex items-center justify-center gap-2 text-sm font-medium text-primary cursor-pointer py-2"
-                  >
-                    {form.arquivo_url ? <Check size={18} /> : <Camera size={18} />}
-                    {lendoFoto ? 'Enviando e lendo a foto...' : form.arquivo_url ? 'Foto anexada — toque para trocar' : 'Tirar foto da nota (preenche sozinho)'}
-                  </label>
+                  <input id="foto-nota-camera" type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" />
+                  <input id="foto-nota-galeria" type="file" accept="image/*" onChange={handleFoto} className="hidden" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <label htmlFor="foto-nota-camera" className="flex items-center justify-center gap-2 text-sm font-medium text-primary cursor-pointer py-2 rounded-lg border border-primary/30 bg-white">
+                      {form.arquivo_url ? <Check size={18} /> : <Camera size={18} />}
+                      {form.arquivo_url ? 'Tirar outra' : 'Tirar foto'}
+                    </label>
+                    <label htmlFor="foto-nota-galeria" className="flex items-center justify-center gap-2 text-sm font-medium text-primary cursor-pointer py-2 rounded-lg border border-primary/30 bg-white">
+                      <ImagePlus size={18} /> Galeria
+                    </label>
+                  </div>
+                  <p role="status" className="text-xs text-gray-600 text-center">
+                    {lendoFoto ? 'Enviando e lendo a foto...' : form.arquivo_url ? 'Foto anexada.' : 'A foto preenche os dados sozinha.'}
+                  </p>
                   {fotoInfo && (
                     <p className="text-xs text-gray-600 text-center">
                       {fotoInfo.aviso || 'Foto lida. Os campos que não deu para ler ficam em branco — confira tudo antes de continuar.'}

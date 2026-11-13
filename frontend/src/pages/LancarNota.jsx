@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Camera, Check, ChevronLeft, LogOut, Plus, Truck, ShieldAlert, CheckCircle2 } from 'lucide-react'
+import { Camera, Check, ChevronLeft, ImagePlus, LogOut, Plus, Truck, ShieldAlert, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../services/auth'
 import { api } from '../services/api'
 import { listarMaquinas } from '../services/maquinas'
@@ -21,7 +21,6 @@ export default function LancarNota() {
   const { auth, logout, isDiretor } = useAuth()
   const navigate = useNavigate()
   const raizRef = useRef(null)
-  const inputFotoRef = useRef(null)
   useErrosDeCampo(raizRef)
 
   const [passo, setPasso] = useState(0)
@@ -60,6 +59,7 @@ export default function LancarNota() {
 
   async function handleFoto(e) {
     const arquivo = e.target.files?.[0]
+    e.target.value = '' // permite escolher a mesma foto de novo
     if (!arquivo) return
     setErro(null)
     setLendo(true)
@@ -86,7 +86,6 @@ export default function LancarNota() {
       setErro(extrairMensagemErro(err, 'Não foi possível enviar a foto. Tente de novo.'))
     } finally {
       setLendo(false)
-      if (inputFotoRef.current) inputFotoRef.current.value = ''
     }
   }
 
@@ -203,23 +202,34 @@ export default function LancarNota() {
             <form onSubmit={continuar} className="space-y-6" id="form-passo-1">
               <section>
                 <h2 className="text-sm font-semibold text-gray-700 mb-2">1. Foto da nota *</h2>
-                <input ref={inputFotoRef} id="foto-lancar" type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" />
-                <label
-                  htmlFor="foto-lancar"
-                  className="block rounded-xl border-2 border-dashed border-primary/40 bg-white overflow-hidden cursor-pointer active:bg-indigo-50"
-                >
-                  {fotoUrl ? (
-                    <img src={fotoUrl} alt="Foto da nota fiscal" className="w-full max-h-56 object-contain bg-gray-100" />
-                  ) : (
-                    <span className="flex flex-col items-center gap-2 py-10 text-primary">
-                      <Camera size={36} />
-                      <span className="text-base font-semibold">Tirar foto da nota</span>
-                    </span>
-                  )}
-                  <span className="block text-center text-sm text-primary font-medium py-2.5 border-t border-primary/20">
-                    {lendo ? 'Enviando e lendo a foto...' : arquivoUrl ? 'Foto anexada ✓ — toque para trocar' : fotoUrl ? 'Tente novamente' : 'Toque para abrir a câmera'}
-                  </span>
-                </label>
+                {/* dois campos de arquivo: um abre a câmera, o outro a galeria (sem "capture") */}
+                <input id="foto-camera" type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" />
+                <input id="foto-galeria" type="file" accept="image/*" onChange={handleFoto} className="hidden" />
+
+                {fotoUrl && (
+                  <img src={fotoUrl} alt="Foto da nota fiscal" className="w-full max-h-56 object-contain bg-gray-100 rounded-xl border border-gray-200 mb-3" />
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    htmlFor="foto-camera"
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-primary bg-primary text-white py-5 text-sm font-semibold cursor-pointer active:opacity-90"
+                  >
+                    <Camera size={28} />
+                    {fotoUrl ? 'Tirar outra' : 'Tirar foto'}
+                  </label>
+                  <label
+                    htmlFor="foto-galeria"
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-primary/40 bg-white text-primary py-5 text-sm font-semibold cursor-pointer active:bg-indigo-50"
+                  >
+                    <ImagePlus size={28} />
+                    {fotoUrl ? 'Outra da galeria' : 'Escolher da galeria'}
+                  </label>
+                </div>
+
+                <p role="status" className="text-center text-sm mt-2 text-gray-600">
+                  {lendo ? 'Enviando e lendo a foto...' : arquivoUrl ? '✓ Foto anexada' : fotoUrl ? 'Não foi possível enviar. Tente de novo.' : 'Tire uma foto da nota ou escolha uma que já está no celular.'}
+                </p>
                 {avisoFoto && <p className="text-xs text-gray-600 mt-2">{avisoFoto}</p>}
               </section>
 
