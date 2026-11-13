@@ -36,11 +36,12 @@ app = FastAPI(
     openapi_url=None if em_producao else "/openapi.json",
 )
 
-frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+# FRONTEND_URL aceita mais de um endereço, separados por vírgula (ex: o site e o IP da rede para testar no celular)
+frontend_urls = [u.strip() for u in os.environ.get("FRONTEND_URL", "http://localhost:5173").split(",") if u.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url],
+    allow_origins=frontend_urls,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

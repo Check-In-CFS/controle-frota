@@ -7,7 +7,8 @@ services:
       - path: ./backend/.env
         required: false
     environment:
-      FRONTEND_URL: http://localhost:5173
+      # LAN_IP = IP do seu computador na rede, para abrir no celular (veja o README). Sem ele, só localhost.
+      FRONTEND_URL: http://localhost:5173,http://${LAN_IP:-localhost}:5173
     ports:
       - "8000:8000"
     volumes:
@@ -16,7 +17,7 @@ services:
   frontend:
     build: ./frontend
     environment:
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: http://${LAN_IP:-localhost}:8000
     ports:
       - "5173:5173"
     volumes:

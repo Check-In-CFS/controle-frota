@@ -57,6 +57,15 @@ docker compose up --build
 - Leitura da foto (`LEITURA_FOTO` no `backend/.env`): `ocr` (padrão) usa o Tesseract instalado na imagem Docker — local, sem custo e sem enviar a imagem a ninguém, mas só preenche o que reconhece com segurança (CNPJ, número, série, data, valor total). `ia` usa a API do Claude (mais precisa, lê itens e fornecedor; exige `ANTHROPIC_API_KEY`, tem custo por foto e envia a imagem à Anthropic). Limite de 30 fotos/hora por usuário.
 - Não existe cadastro público: novos usuários são criados por um administrador na tela de Usuários.
 
+### Testar no celular (mesma rede Wi-Fi)
+
+```bash
+LAN_IP=$(ipconfig getifaddr en0) docker compose up -d --force-recreate   # no Linux: hostname -I | cut -d' ' -f1
+```
+
+Abra `http://<LAN_IP>:5173` no navegador do celular. No celular só aparece a tela **Lançar nota** (foto + máquina + motivo).
+Se não abrir, libere as portas 5173 e 8000 no firewall do computador. Para voltar ao normal: `docker compose up -d --force-recreate`.
+
 ### Testes do backend
 
 Não usam o Supabase real (o banco é simulado):
