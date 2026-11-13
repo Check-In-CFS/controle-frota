@@ -45,7 +45,7 @@ class ConsultaFalsa:
             self.banco.atualizacoes.append((self.nome, self._payload))
         if self._op == "insert" and isinstance(self._payload, dict):
             tabela = self.banco.tabelas.setdefault(self.nome, [])
-            linha = {"id": len(tabela) + 1, **self._payload}
+            linha = {"id": len(tabela) + 1, "created_at": "2026-11-13T10:00:00Z", **self._payload}
             tabela.append(linha)
             self.banco.inseridos.append((self.nome, linha))
             return Resposta([linha])
