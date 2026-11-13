@@ -18,7 +18,7 @@ from PIL import Image, ImageOps
 from app.leitura_nota import NotaLida
 
 LIMITE_PIXELS_OCR = 3000  # lado maior; acima disso o Tesseract só fica mais lento
-CONFIANCA_MINIMA_GIRO = 2.0
+CONFIANCA_MINIMA_GIRO = 0.5  # Img reta chutou 180 com 0.01; fotos realmente deitadas dão 0.7 a 4.5
 
 
 def disponivel() -> bool:
@@ -87,7 +87,8 @@ def _moeda(texto: str):
         return None
 
 
-_RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?/?\s?(\d{4})\s?-?\s?(\d{2})(?!\d)")
+# a barra do CNPJ às vezes some ou vira "1", "|", "I" ou "l" no OCR; o dígito verificador filtra os falsos positivos
+_RE_CNPJ = re.compile(r"(?<!\d)(\d{2})[.\s]?(\d{3})[.\s]?(\d{3})\s?[/1|Il]?\s?(\d{4})\s?-?\s?(\d{2})(?!\d)")
 _RE_DATA = re.compile(r"(?<!\d)(\d{2})[/.\-](\d{2})[/.\-](\d{4})(?!\d)")
 _RE_VALOR_SEM_RS = r"(\d{1,3}(?:\.\d{3})*,\d{2}|\d+,\d{2})"
 _RE_VALOR = r"R?\$?\s*" + _RE_VALOR_SEM_RS
