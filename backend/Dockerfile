@@ -1,5 +1,7 @@
 FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+# Tesseract com 1 thread: em servidor com pouco processador, varias threads brigando ficam 3-4x mais lentas
+ENV OMP_THREAD_LIMIT=1
 
 # Tesseract (OCR) em português: lê o texto das fotos de notas fiscais, sem IA e sem enviar a imagem a terceiros
 RUN apt-get update \

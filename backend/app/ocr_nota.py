@@ -17,6 +17,9 @@ from PIL import Image, ImageOps
 
 from app.leitura_nota import NotaLida
 
+# Tesseract com 1 thread: em servidor com pouco processador, varias threads brigando ficam 3-4x mais lentas
+os.environ.setdefault("OMP_THREAD_LIMIT", "1")
+
 LIMITE_PIXELS_OCR = 3000  # lado maior; acima disso o Tesseract só fica mais lento
 CONFIANCA_MINIMA_GIRO = 0.5  # Img reta chutou 180 com 0.01; fotos realmente deitadas dão 0.7 a 4.5
 
