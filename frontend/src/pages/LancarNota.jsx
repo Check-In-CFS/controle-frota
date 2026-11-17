@@ -34,6 +34,7 @@ export default function LancarNota() {
   const [fotoUrl, setFotoUrl] = useState(null) // pré-visualização local
   const [arquivoUrl, setArquivoUrl] = useState('')
   const [lendo, setLendo] = useState(false)
+  const editados = useRef(new Set()) // campos que a pessoa já mexeu: a leitura da foto não sobrescreve
   const [avisoFoto, setAvisoFoto] = useState(null)
   const [fornecedorLido, setFornecedorLido] = useState(null)
   const [fornecedorNovo, setFornecedorNovo] = useState(null) // fornecedor cadastrado automaticamente a partir da foto
@@ -57,6 +58,7 @@ export default function LancarNota() {
   useEffect(() => () => { if (fotoUrl) URL.revokeObjectURL(fotoUrl) }, [fotoUrl])
 
   function atualizar(campo, valor) {
+    editados.current.add(campo)
     setDados((d) => ({ ...d, [campo]: valor }))
   }
 
@@ -65,6 +67,7 @@ export default function LancarNota() {
     e.target.value = '' // permite escolher a mesma foto de novo
     if (!arquivo) return
     setErro(null)
+    editados.current = new Set()
     setLendo(true)
     setFotoUrl(URL.createObjectURL(arquivo))
     try {
@@ -72,15 +75,19 @@ export default function LancarNota() {
       const d = r.dados
       setArquivoUrl(r.arquivo_url)
       setAvisoFoto(r.aviso)
-      setDados((atual) => ({
-        ...atual,
+      const lidos = {
         ...(d?.numero ? { numero: d.numero } : {}),
         ...(d?.serie ? { serie: d.serie } : {}),
         ...(d?.data_emissao ? { data_emissao: d.data_emissao } : {}),
         ...(d?.valor_total != null ? { valor_total: d.valor_total } : {}),
         ...(d?.tipo ? { tipo: d.tipo } : {}),
         ...(d?.fornecedor_id ? { fornecedor_id: d.fornecedor_id } : {}),
-      }))
+      }
+      setDados((atual) => {
+        const novo = { ...atual }
+        for (const [k, v] of Object.entries(lidos)) if (!editados.current.has(k)) novo[k] = v
+        return novo
+      })
       if (d?.itens?.length) setItens(d.itens)
       // fornecedor encontrado ou cadastrado agora pelo servidor: garante que ele esteja na lista do campo
       if (d?.fornecedor_id) {
@@ -92,6 +99,7 @@ export default function LancarNota() {
       setArquivoUrl('')
       setFotoUrl(null)
       setErro(extrairMensagemErro(err, 'Não foi possível enviar a foto. Tente de novo.'))
+      setPasso(0) // se a pessoa já tinha avançado, volta para refazer a foto
     } finally {
       setLendo(false)
     }
@@ -107,7 +115,7 @@ export default function LancarNota() {
   function continuar(e) {
     e.preventDefault()
     setErro(null)
-    if (!arquivoUrl) return setErro('Tire a foto da nota para continuar.')
+    if (!arquivoUrl && !lendo) return setErro('Tire a foto da nota para continuar.')
     if (!maquinaId) return setErro('Selecione a máquina.')
     if (!motivo) return setErro('Escolha o motivo.')
     setPasso(1)
@@ -117,6 +125,7 @@ export default function LancarNota() {
   async function lancar(e) {
     e.preventDefault()
     setErro(null)
+    if (lendo) return
     if (!/^\d+$/.test(dados.numero)) return setErro('O número da nota deve ter apenas números.')
     if (dados.data_emissao > HOJE) return setErro('A data de emissão não pode ser no futuro.')
     const valor = itens.length
@@ -231,8 +240,8 @@ export default function LancarNota() {
 
           {passo === 1 && (
             <form onSubmit={lancar} className="flex flex-col gap-4" id="form-passo-2">
-              <p className={`m-aviso ${avisoFoto ? 'm-aviso-info' : 'm-aviso-ok'}`}>
-                {avisoFoto ? 'Não deu para ler a foto: preencha os dados da nota.' : 'Confira os dados lidos da foto. O que ficou em branco precisa ser preenchido.'}
+              <p className={`m-aviso ${lendo || avisoFoto ? 'm-aviso-info' : 'm-aviso-ok'}`}>
+                {lendo ? 'Lendo a foto... os campos em branco serão preenchidos sozinhos. Você já pode ir digitando.' : avisoFoto ? 'Não deu para ler a foto: preencha os dados da nota.' : 'Confira os dados lidos da foto. O que ficou em branco precisa ser preenchido.'}
               </p>
 
               <Secao titulo="Dados da nota" className="space-y-4">
@@ -313,8 +322,8 @@ export default function LancarNota() {
               <ChevronLeft size={26} />
             </button>
           )}
-          <button type="submit" form={passo === 0 ? 'form-passo-1' : 'form-passo-2'} disabled={lendo || salvando} className="m-botao m-botao-primario">
-            {passo === 0 ? 'Continuar' : salvando ? 'Lançando...' : 'Lançar nota'}
+          <button type="submit" form={passo === 0 ? 'form-passo-1' : 'form-passo-2'} disabled={salvando || (passo === 1 && lendo)} className="m-botao m-botao-primario">
+            {passo === 0 ? 'Continuar' : salvando ? 'Lançando...' : lendo ? 'Lendo a foto...' : 'Lançar nota'}
           </button>
         </div>
       )}
