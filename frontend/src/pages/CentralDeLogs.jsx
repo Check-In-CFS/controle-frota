@@ -11,12 +11,15 @@ import {
 import { useAuth } from '../services/auth'
 import LogDetalheModal from '../components/LogDetalheModal'
 import Carregando from '../components/Carregando'
+import { formatarDataHora } from '../utils/formatar'
 
 const BADGE_ACAO = {
   criar: 'bg-green-100 text-green-700',
   atualizar: 'bg-blue-100 text-blue-700',
   excluir: 'bg-orange-100 text-orange-700',
   excluir_permanente: 'bg-red-100 text-red-700',
+  entrada_mercadoria: 'bg-green-50 text-green-700',
+  retirada: 'bg-amber-50 text-amber-700',
   ativar: 'bg-green-100 text-green-700',
   desativar: 'bg-gray-100 text-gray-600',
 }
@@ -179,9 +182,4 @@ function FiltroSelect({ label, value, onChange, opcoes }) {
       </select>
     </label>
   )
-}
-
-function formatarDataHora(iso) {
-  const d = new Date(iso)
-  return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }

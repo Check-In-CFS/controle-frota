@@ -18,7 +18,3 @@ export const darEntradaMercadoria = (notaId, payload) =>
   api.post(`/notas-fiscais/${notaId}/entrada-mercadoria`, payload).then((r) => r.data)
 
 export const UNIDADES = ['un', 'par', 'kit', 'cx', 'L', 'kg', 'm']
-
-export function formatarQtd(n) {
-  return Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 3 })
-}

@@ -11,6 +11,7 @@ import {
 import { api } from '../services/api'
 import { useAuth } from '../services/auth'
 import Carregando from '../components/Carregando'
+import { formatarMoeda } from '../utils/formatar'
 
 const NOMES_MES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
@@ -244,8 +245,4 @@ function AtalhoRapido({ icone: Icone, label, onClick }) {
       {label}
     </button>
   )
-}
-
-function formatarMoeda(valor) {
-  return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

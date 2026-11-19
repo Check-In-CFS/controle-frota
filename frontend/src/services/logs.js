@@ -8,6 +8,7 @@ export const ENTIDADES_LOG = [
   { value: 'preventiva', label: 'Preventiva' },
   { value: 'abastecimento', label: 'Abastecimento' },
   { value: 'nota_fiscal', label: 'Nota Fiscal' },
+  { value: 'produto', label: 'Estoque' },
   { value: 'checklist_execucao', label: 'Checklist' },
   { value: 'usuario', label: 'Usuário' },
 ]
@@ -19,6 +20,9 @@ export const ACOES_LOG = [
   { value: 'excluir_permanente', label: 'Exclusão permanente' },
   { value: 'ativar', label: 'Ativação' },
   { value: 'desativar', label: 'Desativação' },
+  { value: 'entrada_mercadoria', label: 'Entrada de mercadoria' },
+  { value: 'retirada', label: 'Retirada do estoque' },
+  { value: 'ajuste', label: 'Ajuste de estoque' },
 ]
 
 export async function listarLogs(filtros = {}) {

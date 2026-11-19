@@ -5,6 +5,13 @@ from fastapi import HTTPException
 from app.auth_deps import UsuarioLogado
 
 
+def produto_por_nome(sb, nome: str):
+    """Produto com exatamente esse nome (sem diferenciar maiúsculas). % e _ não viram curinga."""
+    literal = nome.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    resp = sb.table("produtos").select("*").ilike("nome", literal).execute()
+    return resp.data[0] if resp.data else None
+
+
 def mover_saldo(sb, produto_id: int, delta: float) -> float:
     """
     Soma `delta` ao saldo do produto direto no banco (uma operação só, sem ler-e-gravar),

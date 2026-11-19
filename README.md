@@ -93,7 +93,12 @@ docker compose run --rm --no-deps -v "$PWD/backend":/app backend sh -c "pip inst
 O `vercel.json` já está configurado para lidar com as rotas do React Router (evita erro 404 ao recarregar a página em `/maquinas`, `/manutencoes`, etc.)
 
 ### Backend no Railway
-Veja seção de configuração no topo do repositório (Root Directory = `backend`, Start Command com `uvicorn`).
+- **Root Directory:** `backend` (o Railway usa o `backend/Dockerfile`, que já instala o Tesseract)
+- **Custom Start Command:** `sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"`
+  (sem o `sh -c` o `$PORT` não é expandido e o serviço cai com "'$PORT' is not a valid integer")
+- **Região:** uma só (o plano Hobby não aceita várias); a mais próxima do Supabase de São Paulo é US East
+- **Variáveis:** `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `JWT_SECRET` (32+ caracteres), `FRONTEND_URL`
+  (domínios da Vercel separados por vírgula) e `EMPRESA_CNPJ`
 
 ### Banco
 Supabase já configurado -- nenhuma etapa adicional de deploy necessária.

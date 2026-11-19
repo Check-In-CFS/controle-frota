@@ -45,7 +45,7 @@ export default function Maquinas() {
     try {
       const dados = await listarMaquinas({ busca, tipo, situacao, centro_despesa_id: centroDespesaId })
       setMaquinas(dados)
-    } catch (err) {
+    } catch {
       setErro('Não foi possível carregar as máquinas. Verifique se a API está rodando.')
     } finally {
       setCarregando(false)

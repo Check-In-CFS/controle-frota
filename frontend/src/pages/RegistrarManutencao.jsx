@@ -4,11 +4,12 @@ import { CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useAuth } from '../services/auth'
 import { listarMaquinas } from '../services/maquinas'
 import { TIPOS_MANUTENCAO, criarManutencao } from '../services/manutencoes'
-import { extrairMensagemErro } from '../services/notasFiscais'
+
 import CelularCabecalho from '../components/CelularCabecalho'
 import Secao from '../components/celular/Secao'
 import ListaMaquinas from '../components/celular/ListaMaquinas'
 import { useErrosDeCampo } from '../hooks/useErrosDeCampo'
+import { extrairMensagemErro } from '../services/api'
 
 const HOJE = new Date().toISOString().slice(0, 10)
 

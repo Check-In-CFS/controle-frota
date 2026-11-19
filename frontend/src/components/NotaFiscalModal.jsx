@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, Plus, Trash2, Upload, FileCheck2 } from 'lucide-react'
-import { TIPOS_NOTA, importarXmlNotaFiscal, extrairMensagemErro } from '../services/notasFiscais'
-import { api } from '../services/api'
+import { TIPOS_NOTA, importarXmlNotaFiscal } from '../services/notasFiscais'
+import { api, extrairMensagemErro } from '../services/api'
 import FornecedorModal from './FornecedorModal'
 import Modal from './Modal'
+import { formatarMoeda } from '../utils/formatar'
 
 const VAZIO = {
   numero: '',
@@ -478,8 +479,4 @@ function Campo({ label, children, className = '' }) {
       {children}
     </label>
   )
-}
-
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

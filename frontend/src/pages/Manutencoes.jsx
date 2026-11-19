@@ -23,6 +23,7 @@ import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
 import ConcluirPreventivaModal from '../components/ConcluirPreventivaModal'
 import Carregando from '../components/Carregando'
+import { formatarMoeda, formatarData } from '../utils/formatar'
 
 const BADGE_STATUS_PREVENTIVA = {
   vencida: 'bg-red-100 text-red-700',
@@ -465,15 +466,6 @@ function Th({ children, className = '' }) {
 
 function Td({ children, className = '' }) {
   return <td className={`px-4 py-3 ${className}`}>{children}</td>
-}
-
-function formatarData(iso) {
-  const [ano, mes, dia] = iso.split('-')
-  return `${dia}/${mes}/${ano}`
-}
-
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 function labelStatusPreventiva(status) {

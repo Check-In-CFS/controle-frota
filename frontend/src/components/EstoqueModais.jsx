@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { X } from 'lucide-react'
 import Modal from './Modal'
 import { listarMaquinas } from '../services/maquinas'
-import { extrairMensagemErro } from '../services/notasFiscais'
-import { UNIDADES, formatarQtd, listarMovimentos } from '../services/estoque'
+
+import { UNIDADES, listarMovimentos } from '../services/estoque'
+import { formatarQtd, formatarDataHora } from '../utils/formatar'
+import { extrairMensagemErro } from '../services/api'
 
 const INPUT = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30'
 
@@ -158,7 +160,7 @@ export function MovimentosModal({ produto, onClose }) {
               <tbody>
                 {movs.map((m) => (
                   <tr key={m.id} className="border-t border-gray-100">
-                    <td className="px-3 py-2 whitespace-nowrap">{new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{formatarDataHora(m.created_at)}</td>
                     <td className="px-3 py-2"><span className={`text-xs font-medium px-2 py-0.5 rounded-full ${COR[m.tipo]}`}>{ROTULO[m.tipo] || m.tipo}</span></td>
                     <td className="px-3 py-2 text-right font-medium">{m.tipo === 'retirada' ? '−' : m.quantidade > 0 ? '+' : ''}{formatarQtd(m.quantidade)}</td>
                     <td className="px-3 py-2 text-gray-600">

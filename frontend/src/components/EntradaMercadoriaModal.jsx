@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { X, PackagePlus } from 'lucide-react'
 import Modal from './Modal'
-import { extrairMensagemErro } from '../services/notasFiscais'
-import { listarProdutos, darEntradaMercadoria, formatarQtd } from '../services/estoque'
+
+import { listarProdutos, darEntradaMercadoria } from '../services/estoque'
+import { formatarQtd } from '../utils/formatar'
+import { extrairMensagemErro } from '../services/api'
 
 const INPUT = 'border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30'
 const NOVO = 'novo'
@@ -24,14 +26,13 @@ export default function EntradaMercadoriaModal({ nota, onClose, onConcluido }) {
       setProdutos(lista)
       // sugestão: produto já ligado ao item, senão o de mesmo nome, senão criar novo
       const inicial = {}
-      for (const i of itens) {
+      for (const i of (nota.itens || []).filter((x) => pendente(x) > 0)) {
         const igual = lista.find((p) => norm(p.nome) === norm(i.nome))
         inicial[i.id] = { marcado: true, quantidade: String(pendente(i)), produto: i.produto_id ? String(i.produto_id) : igual ? String(igual.id) : NOVO }
       }
       setLinhas(inicial)
     }).catch(() => setErro('Não foi possível carregar o estoque.'))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [nota])
 
   const mudar = (id, campo, valor) => setLinhas((l) => ({ ...l, [id]: { ...l[id], [campo]: valor } }))
   const marcados = itens.filter((i) => linhas[i.id]?.marcado)

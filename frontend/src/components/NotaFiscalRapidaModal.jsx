@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { X, Upload, Plus, Trash2, ChevronLeft, Check, FileCheck2, Camera, ImagePlus } from 'lucide-react'
-import { TIPOS_NOTA, importarXmlNotaFiscal, lerFotoNotaFiscal, extrairMensagemErro } from '../services/notasFiscais'
-import { api } from '../services/api'
+import { TIPOS_NOTA, importarXmlNotaFiscal, lerFotoNotaFiscal } from '../services/notasFiscais'
+import { api, extrairMensagemErro } from '../services/api'
 import FornecedorModal from './FornecedorModal'
 import Modal from './Modal'
 

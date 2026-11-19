@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.auditoria import registrar_log
 from app.auth_deps import UsuarioLogado, exigir_admin, exigir_operacional
 from app.database import get_supabase
-from app.estoque import mover_saldo, registrar_movimento
+from app.estoque import mover_saldo, produto_por_nome, registrar_movimento
+from app.maquina_guard import validar_maquina_permite_lancamento
 from app.schemas.produtos import Ajuste, Movimento, Produto, ProdutoCreate, ProdutoUpdate, Retirada
 
 router = APIRouter(prefix="/produtos", tags=["Estoque"])
@@ -42,8 +43,7 @@ def listar_produtos(busca: Optional[str] = None, incluir_inativos: bool = False,
 @router.post("", response_model=Produto, status_code=201)
 def criar_produto(dados: ProdutoCreate, usuario: UsuarioLogado = Depends(exigir_admin)):
     sb = get_supabase()
-    existe = sb.table("produtos").select("id").ilike("nome", dados.nome).execute()
-    if existe.data:
+    if produto_por_nome(sb, dados.nome):
         raise HTTPException(status_code=409, detail="Já existe um produto com esse nome.")
     criado = sb.table("produtos").insert(dados.model_dump()).execute().data[0]
     registrar_log(usuario, "criar", "produto", criado["id"], f"Produto {criado['nome']} cadastrado", dados_depois=criado)
@@ -58,8 +58,8 @@ def atualizar_produto(produto_id: int, dados: ProdutoUpdate, usuario: UsuarioLog
         raise HTTPException(status_code=400, detail="Nenhum campo enviado para atualização")
     antes = _buscar(sb, produto_id)
     if "nome" in campos:
-        outro = sb.table("produtos").select("id").ilike("nome", campos["nome"]).execute()
-        if any(p["id"] != produto_id for p in outro.data):
+        outro = produto_por_nome(sb, campos["nome"])
+        if outro and outro["id"] != produto_id:
             raise HTTPException(status_code=409, detail="Já existe um produto com esse nome.")
     depois = sb.table("produtos").update(campos).eq("id", produto_id).execute().data[0]
     registrar_log(usuario, "atualizar", "produto", produto_id, f"Produto {antes['nome']} atualizado", dados_antes=antes, dados_depois=depois)
@@ -94,8 +94,8 @@ def retirar_do_estoque(produto_id: int, dados: Retirada, usuario: UsuarioLogado 
     produto = _buscar(sb, produto_id)
     if not produto["ativo"]:
         raise HTTPException(status_code=409, detail="Produto inativo.")
-    if dados.maquina_id is not None and not sb.table("maquinas").select("id").eq("id", dados.maquina_id).execute().data:
-        raise HTTPException(status_code=422, detail="Máquina não encontrada.")
+    if dados.maquina_id is not None:
+        validar_maquina_permite_lancamento(dados.maquina_id)  # mesma regra dos outros lançamentos
     if dados.manutencao_id is not None and not sb.table("manutencoes").select("id").eq("id", dados.manutencao_id).execute().data:
         raise HTTPException(status_code=422, detail="Manutenção não encontrada.")
 

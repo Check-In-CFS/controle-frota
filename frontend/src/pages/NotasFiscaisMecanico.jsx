@@ -7,15 +7,7 @@ import NotaFiscalRapidaModal from '../components/NotaFiscalRapidaModal'
 import NotaFiscalDetalheModal from '../components/NotaFiscalDetalheModal'
 import EntradaMercadoriaModal from '../components/EntradaMercadoriaModal'
 import Carregando from '../components/Carregando'
-
-function formatarData(iso) {
-  const [ano, mes, dia] = iso.split('-')
-  return `${dia}/${mes}/${ano}`
-}
-
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
+import { formatarMoeda, formatarData } from '../utils/formatar'
 
 /** Visão de Notas Fiscais do mecânico: lança notas e consulta as já lançadas (somente leitura). */
 export default function NotasFiscaisMecanico() {

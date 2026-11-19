@@ -11,7 +11,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_RIGHT, TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_RIGHT, TA_LEFT
 
 # Paleta -- mesma cor primária usada no frontend (Tailwind indigo-600), para
 # os relatórios terem a mesma identidade visual do sistema.
@@ -22,7 +22,6 @@ COR_BORDA = colors.HexColor("#e0e0e6")
 COR_TEXTO_CLARO = colors.HexColor("#6b7280")
 
 COR_PRIMARIA_HEX = "4F46E5"
-COR_ZEBRA_HEX = "F5F5F8"
 COR_BORDA_HEX = "D9D9E3"
 
 # Cabeçalhos que indicam coluna monetária -- usados para alinhar à direita e

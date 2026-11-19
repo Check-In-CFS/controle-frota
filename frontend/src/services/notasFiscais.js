@@ -79,19 +79,3 @@ export function labelTipoNota(valor) {
   return TIPOS_NOTA.find((t) => t.value === valor)?.label || valor
 }
 
-// Extrai uma mensagem de erro legível da resposta da API, seja ela um texto
-// simples (HTTPException) ou uma lista de erros de validação do Pydantic.
-export function extrairMensagemErro(err, mensagemPadrao) {
-  const detalhe = err.response?.data?.detail
-  if (!detalhe) return mensagemPadrao
-  if (typeof detalhe === 'string') return detalhe
-  if (Array.isArray(detalhe)) {
-    return detalhe
-      .map((d) => {
-        const campo = Array.isArray(d.loc) ? d.loc[d.loc.length - 1] : null
-        return campo ? `${campo}: ${d.msg}` : d.msg
-      })
-      .join(' | ')
-  }
-  return mensagemPadrao
-}

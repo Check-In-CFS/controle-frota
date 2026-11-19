@@ -2,16 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Search, Plus, Pencil, Trash2 } from 'lucide-react'
 import { listarMaquinas, listarCentrosDespesa } from '../services/maquinas'
-import { api } from '../services/api'
-import {
-  listarNotasFiscais,
-  criarNotaFiscal,
-  atualizarNotaFiscal,
-  excluirNotaFiscal,
-  labelTipoNota,
-  extrairMensagemErro,
-  TIPOS_NOTA,
-} from '../services/notasFiscais'
+import { api, extrairMensagemErro } from '../services/api'
+import { listarNotasFiscais, criarNotaFiscal, atualizarNotaFiscal, excluirNotaFiscal, labelTipoNota, TIPOS_NOTA } from '../services/notasFiscais'
 import NotaFiscalModal from '../components/NotaFiscalModal'
 import NotaFiscalDetalheModal from '../components/NotaFiscalDetalheModal'
 import EntradaMercadoriaModal from '../components/EntradaMercadoriaModal'
@@ -20,6 +12,7 @@ import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
 import Carregando from '../components/Carregando'
 import NotasFiscaisMecanico from './NotasFiscaisMecanico'
+import { formatarMoeda, formatarData } from '../utils/formatar'
 
 function NotasFiscaisGestao() {
   const { isAdmin, isDiretor } = useAuth()
@@ -274,15 +267,6 @@ function Th({ children, className = '' }) {
 
 function Td({ children, className = '' }) {
   return <td className={`px-4 py-3 ${className}`}>{children}</td>
-}
-
-function formatarData(iso) {
-  const [ano, mes, dia] = iso.split('-')
-  return `${dia}/${mes}/${ano}`
-}
-
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 // Mecânico tem uma tela própria (lançar e consultar); admin/diretor usam a de gestão.

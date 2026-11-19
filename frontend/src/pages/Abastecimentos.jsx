@@ -18,6 +18,7 @@ import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
 import Carregando from '../components/Carregando'
+import { formatarMoeda, formatarData } from '../utils/formatar'
 
 export default function Abastecimentos() {
   const { isAdmin, isDiretor } = useAuth()
@@ -286,13 +287,4 @@ function Th({ children, className = '' }) {
 
 function Td({ children, className = '' }) {
   return <td className={`px-4 py-3 ${className}`}>{children}</td>
-}
-
-function formatarData(iso) {
-  const [ano, mes, dia] = iso.split('-')
-  return `${dia}/${mes}/${ano}`
-}
-
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

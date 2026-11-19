@@ -2,12 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Camera, CheckCircle2, ChevronLeft, ImagePlus, Plus, ShieldAlert } from 'lucide-react'
 import { useAuth } from '../services/auth'
-import { api } from '../services/api'
+import { api, extrairMensagemErro } from '../services/api'
 import { listarMaquinas } from '../services/maquinas'
-import {
-  TIPOS_NOTA, MOTIVOS_NOTA, montarObservacaoComMotivo,
-  lerFotoNotaFiscal, criarNotaFiscal, extrairMensagemErro,
-} from '../services/notasFiscais'
+import { TIPOS_NOTA, MOTIVOS_NOTA, montarObservacaoComMotivo, lerFotoNotaFiscal, criarNotaFiscal } from '../services/notasFiscais'
 import FornecedorModal from '../components/FornecedorModal'
 import CelularCabecalho from '../components/CelularCabecalho'
 import Secao from '../components/celular/Secao'

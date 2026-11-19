@@ -8,11 +8,6 @@ from app.database import get_supabase
 
 router = APIRouter(prefix="/logs", tags=["Central de Logs"])
 
-ENTIDADES = [
-    "maquina", "centro_despesa", "fornecedor", "manutencao", "preventiva",
-    "abastecimento", "nota_fiscal", "checklist_execucao", "usuario",
-]
-ACOES = ["criar", "atualizar", "excluir", "excluir_permanente", "ativar", "desativar"]
 
 
 @router.get("")

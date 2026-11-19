@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { X, Pencil, PackagePlus, Image as IconeFoto } from 'lucide-react'
-import { labelTipoNota, obterUrlFotoNota, extrairMensagemErro } from '../services/notasFiscais'
+import { labelTipoNota, obterUrlFotoNota } from '../services/notasFiscais'
 import Modal from './Modal'
+import { formatarMoeda, formatarData, formatarDataHora } from '../utils/formatar'
+import { extrairMensagemErro } from '../services/api'
 
 export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, onEditar, onEntrada }) {
   const [abrindoFoto, setAbrindoFoto] = useState(false)
@@ -148,18 +150,4 @@ function Campo({ label, valor, destaque = false }) {
       <span className={destaque ? 'text-base font-semibold text-gray-800' : 'text-sm text-gray-700'}>{valor}</span>
     </div>
   )
-}
-
-function formatarData(iso) {
-  const [ano, mes, dia] = iso.split('-')
-  return `${dia}/${mes}/${ano}`
-}
-
-function formatarDataHora(iso) {
-  const d = new Date(iso)
-  return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
-
-function formatarMoeda(valor) {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }

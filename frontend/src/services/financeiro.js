@@ -1,3 +1,4 @@
+export { formatarMoeda } from '../utils/formatar'
 import { api } from './api'
 
 export async function buscarVisaoGeral(dataInicio, dataFim) {
@@ -48,6 +49,3 @@ export const NOMES_MESES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ]
 
-export function formatarMoeda(valor) {
-  return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}

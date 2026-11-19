@@ -137,6 +137,42 @@ def test_nota_com_entrada_nao_pode_ser_excluida_nem_ter_itens_trocados(client, b
     assert troca.status_code == 409
 
 
+def test_nota_com_entrada_aceita_edicao_que_reenvia_os_mesmos_itens(client, banco):
+    # o formulário de edição sempre reenvia a lista inteira; se ela não mudou, editar outro campo deve funcionar
+    nota_com_itens(banco, recebida=2)
+    mesmos = [{"nome": "Farol Bobcat S650", "quantidade": 2, "valor_unitario": 300}]
+    r = client.patch("/notas-fiscais/1", json={"observacoes": "conferida", "itens": mesmos}, headers=cabecalho("admin"))
+    assert r.status_code == 200, r.text
+    assert not [c for c in banco.consultas if c.nome == "notas_fiscais_itens" and c._op == "delete"]
+
+
+def test_retirada_para_maquina_baixada_e_recusada(client, banco):
+    banco.tabelas["produtos"] = [produto()]
+    banco.tabelas["maquinas"] = [{"id": 3, "codigo": "TR-01", "situacao": "baixada"}]
+    r = client.post("/produtos/1/retirada", json={"quantidade": 1, "maquina_id": 3}, headers=cabecalho("mecanico"))
+    assert r.status_code == 422 and "baixada" in r.json()["detail"]
+    assert not banco.chamadas_rpc
+
+
+def test_nome_com_curinga_nao_casa_com_outro_produto():
+    from app.estoque import produto_por_nome
+
+    class Sb:
+        def table(self, _):
+            return self
+        def select(self, _):
+            return self
+        def ilike(self, coluna, valor):
+            self.valor = valor
+            return self
+        def execute(self):
+            return type("R", (), {"data": []})()
+
+    sb = Sb()
+    produto_por_nome(sb, "Filtro_100%")
+    assert sb.valor == "Filtro\\_100\\%"
+
+
 def test_nota_sem_entrada_continua_podendo_ser_excluida(client, banco):
     nota_com_itens(banco, recebida=0)
     assert client.delete("/notas-fiscais/1", headers=cabecalho("admin")).status_code != 409

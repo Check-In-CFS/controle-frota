@@ -12,7 +12,7 @@ from app.database import get_supabase
 from app import consulta_cnpj, fotos_notas, leitura_nota
 from app.rate_limit import limitar_por_chave
 from app.maquina_guard import validar_maquina_permite_lancamento
-from app.estoque import mover_saldo, registrar_movimento
+from app.estoque import mover_saldo, produto_por_nome, registrar_movimento
 from app.schemas.produtos import EntradaMercadoria
 from app.schemas.notas_fiscais import NotaFiscal, NotaFiscalCreate, NotaFiscalUpdate
 
@@ -47,7 +47,17 @@ def _garantir_sem_entrada(sb, nota_id: int) -> None:
         )
 
 
+def _chave_itens(itens) -> list:
+    """Itens comparáveis sem olhar id/ordem (o formulário de edição sempre reenvia a lista inteira)."""
+    def campo(i, nome):
+        return i[nome] if isinstance(i, dict) else getattr(i, nome)
+    return sorted((campo(i, "nome").strip(), float(campo(i, "quantidade")), float(campo(i, "valor_unitario"))) for i in itens)
+
+
 def _substituir_itens(sb, nota_id: int, itens: list) -> None:
+    atuais = sb.table("notas_fiscais_itens").select("*").eq("nota_fiscal_id", nota_id).execute().data
+    if _chave_itens(atuais) == _chave_itens(itens):
+        return  # nada mudou: mantém os itens (e o vínculo com o estoque) como estão
     _garantir_sem_entrada(sb, nota_id)
     sb.table("notas_fiscais_itens").delete().eq("nota_fiscal_id", nota_id).execute()
     if itens:
@@ -236,9 +246,9 @@ def dar_entrada_de_mercadoria(nota_id: int, dados: EntradaMercadoria, usuario: U
         item = itens_da_nota[entrada.item_id]
         produto_id = entrada.produto_id or item.get("produto_id")
         if entrada.novo_produto and not entrada.produto_id:
-            existente = sb.table("produtos").select("id").ilike("nome", item["nome"]).execute()
-            if existente.data:
-                produto_id = existente.data[0]["id"]
+            existente = produto_por_nome(sb, item["nome"])
+            if existente:
+                produto_id = existente["id"]
             else:
                 produto_id = sb.table("produtos").insert({"nome": item["nome"]}).execute().data[0]["id"]
         elif not sb.table("produtos").select("id").eq("id", produto_id).execute().data:

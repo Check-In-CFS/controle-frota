@@ -8,6 +8,7 @@ import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
 import Carregando from '../components/Carregando'
+import { formatarDataHora } from '../utils/formatar'
 
 export default function Checklist() {
   const { isDiretor } = useAuth()
@@ -236,9 +237,4 @@ function Th({ children }) {
 
 function Td({ children, className = '' }) {
   return <td className={`px-4 py-3 ${className}`}>{children}</td>
-}
-
-function formatarDataHora(iso) {
-  const d = new Date(iso)
-  return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }

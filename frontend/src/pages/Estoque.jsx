@@ -4,7 +4,8 @@ import { useAuth } from '../services/auth'
 import { toast } from '../services/toast'
 import Carregando from '../components/Carregando'
 import { ProdutoModal, RetiradaModal, AjusteModal, MovimentosModal } from '../components/EstoqueModais'
-import { listarProdutos, criarProduto, atualizarProduto, retirarProduto, ajustarProduto, formatarQtd } from '../services/estoque'
+import { listarProdutos, criarProduto, atualizarProduto, retirarProduto, ajustarProduto } from '../services/estoque'
+import { formatarQtd } from '../utils/formatar'
 
 export default function Estoque() {
   const { isAdmin, isDiretor } = useAuth()
