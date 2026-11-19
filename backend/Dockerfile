@@ -14,5 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 EXPOSE 8000
 # Produção: respeita a porta que a hospedagem define ($PORT) e não usa --reload.
-# O docker-compose.yml sobrescreve este comando para desenvolvimento (com --reload).
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# O entrypoint expande variáveis mesmo se a hospedagem sobrescrever o comando de início.
+# O docker-compose.yml sobrescreve o comando para desenvolvimento (com --reload).
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
