@@ -19,6 +19,8 @@ class ItemNotaFiscal(BaseModel):
 
 class ItemNotaFiscalOut(ItemNotaFiscal):
     id: int
+    produto_id: Optional[int] = None
+    quantidade_recebida: float = 0  # quanto já deu entrada no estoque
 
 
 class NotaFiscalBase(BaseModel):

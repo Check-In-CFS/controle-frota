@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { X, Pencil, Image as IconeFoto } from 'lucide-react'
+import { X, Pencil, PackagePlus, Image as IconeFoto } from 'lucide-react'
 import { labelTipoNota, obterUrlFotoNota, extrairMensagemErro } from '../services/notasFiscais'
 import Modal from './Modal'
 
-export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, onEditar }) {
+export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, onEditar, onEntrada }) {
   const [abrindoFoto, setAbrindoFoto] = useState(false)
   const [erroFoto, setErroFoto] = useState(null)
 
@@ -32,6 +32,14 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
             Nota Fiscal {nota.numero} / {nota.serie}
           </h2>
           <div className="flex items-center gap-2">
+            {onEntrada && nota.itens?.some((i) => i.quantidade > (i.quantidade_recebida || 0)) && (
+              <button
+                onClick={onEntrada}
+                className="flex items-center gap-1.5 text-sm text-white bg-primary hover:bg-primary-dark px-3 py-1.5 rounded-lg"
+              >
+                <PackagePlus size={14} /> Dar entrada de mercadoria
+              </button>
+            )}
             {onEditar && (
               <button
                 onClick={onEditar}
@@ -94,6 +102,7 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
                       <th className="px-3 py-2 font-medium">Qtd.</th>
                       <th className="px-3 py-2 font-medium">Vlr. Unit.</th>
                       <th className="px-3 py-2 font-medium">Subtotal</th>
+                      <th className="px-3 py-2 font-medium">Estoque</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -103,6 +112,13 @@ export default function NotaFiscalDetalheModal({ nota, centrosDespesa, onClose, 
                         <td className="px-3 py-2">{item.quantidade}</td>
                         <td className="px-3 py-2">{formatarMoeda(item.valor_unitario)}</td>
                         <td className="px-3 py-2 font-medium">{formatarMoeda(item.quantidade * item.valor_unitario)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          {item.quantidade_recebida >= item.quantidade
+                            ? <span className="text-xs font-medium bg-green-50 text-green-700 px-2 py-0.5 rounded-full">No estoque</span>
+                            : item.quantidade_recebida > 0
+                              ? <span className="text-xs font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">Parcial ({item.quantidade_recebida}/{item.quantidade})</span>
+                              : <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Aguardando entrada</span>}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

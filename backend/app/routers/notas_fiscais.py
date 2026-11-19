@@ -12,6 +12,8 @@ from app.database import get_supabase
 from app import consulta_cnpj, fotos_notas, leitura_nota
 from app.rate_limit import limitar_por_chave
 from app.maquina_guard import validar_maquina_permite_lancamento
+from app.estoque import mover_saldo, registrar_movimento
+from app.schemas.produtos import EntradaMercadoria
 from app.schemas.notas_fiscais import NotaFiscal, NotaFiscalCreate, NotaFiscalUpdate
 
 router = APIRouter(prefix="/notas-fiscais", tags=["Notas Fiscais"])
@@ -35,7 +37,18 @@ def _achatar(registro: dict) -> dict:
     return registro
 
 
+def _garantir_sem_entrada(sb, nota_id: int) -> None:
+    """Itens que já deram entrada no estoque não podem ser trocados nem apagados (o saldo ficaria errado)."""
+    ja_entrou = sb.table("notas_fiscais_itens").select("id, quantidade_recebida").eq("nota_fiscal_id", nota_id).execute()
+    if any(float(i.get("quantidade_recebida") or 0) > 0 for i in ja_entrou.data):
+        raise HTTPException(
+            status_code=409,
+            detail="Esta nota já teve entrada de mercadoria no estoque. Ajuste o estoque pelo produto em vez de alterar a nota.",
+        )
+
+
 def _substituir_itens(sb, nota_id: int, itens: list) -> None:
+    _garantir_sem_entrada(sb, nota_id)
     sb.table("notas_fiscais_itens").delete().eq("nota_fiscal_id", nota_id).execute()
     if itens:
         linhas = [
@@ -178,6 +191,7 @@ def atualizar_nota_fiscal(nota_id: int, nota: NotaFiscalUpdate, usuario: Usuario
 @router.delete("/{nota_id}", status_code=204)
 def excluir_nota_fiscal(nota_id: int, usuario: UsuarioLogado = Depends(exigir_admin)):
     sb = get_supabase()
+    _garantir_sem_entrada(sb, nota_id)
     existente = sb.table("notas_fiscais").select("*").eq("id", nota_id).execute()
     resp = sb.table("notas_fiscais").delete().eq("id", nota_id).execute()
     if not resp.data:
@@ -185,6 +199,65 @@ def excluir_nota_fiscal(nota_id: int, usuario: UsuarioLogado = Depends(exigir_ad
     # notas_fiscais_maquinas e notas_fiscais_itens são apagadas em cascata pela FK ON DELETE CASCADE
     numero_serie = f"{existente.data[0]['numero']}/{existente.data[0]['serie']}" if existente.data else f"id={nota_id}"
     registrar_log(usuario, "excluir", "nota_fiscal", nota_id, f"Nota fiscal {numero_serie} excluída", dados_antes=(existente.data[0] if existente.data else None))
+
+
+@router.post("/{nota_id}/entrada-mercadoria", response_model=NotaFiscal)
+def dar_entrada_de_mercadoria(nota_id: int, dados: EntradaMercadoria, usuario: UsuarioLogado = Depends(exigir_operacional)):
+    """
+    Marca que a mercadoria da nota chegou: cada item vira saldo de um produto do catálogo
+    (existente ou criado agora) e fica no estoque aguardando a retirada. Pode ser parcial.
+    """
+    sb = get_supabase()
+    nota = sb.table("notas_fiscais").select("*").eq("id", nota_id).execute()
+    if not nota.data:
+        raise HTTPException(status_code=404, detail="Nota fiscal não encontrada")
+
+    itens_da_nota = {
+        i["id"]: i
+        for i in sb.table("notas_fiscais_itens").select("*").eq("nota_fiscal_id", nota_id).execute().data
+    }
+
+    # valida tudo antes de mexer em qualquer saldo
+    ja_visto = set()
+    for entrada in dados.itens:
+        item = itens_da_nota.get(entrada.item_id)
+        if item is None:
+            raise HTTPException(status_code=422, detail=f"O item {entrada.item_id} não pertence a esta nota.")
+        if entrada.item_id in ja_visto:
+            raise HTTPException(status_code=422, detail="Item repetido na entrada.")
+        ja_visto.add(entrada.item_id)
+        pendente = float(item["quantidade"]) - float(item.get("quantidade_recebida") or 0)
+        if entrada.quantidade > pendente + 1e-9:
+            raise HTTPException(status_code=422, detail=f"'{item['nome']}': só falta dar entrada de {pendente:g}.")
+        if not entrada.produto_id and not entrada.novo_produto and not item.get("produto_id"):
+            raise HTTPException(status_code=422, detail=f"'{item['nome']}': escolha um produto do estoque ou crie um novo.")
+
+    for entrada in dados.itens:
+        item = itens_da_nota[entrada.item_id]
+        produto_id = entrada.produto_id or item.get("produto_id")
+        if entrada.novo_produto and not entrada.produto_id:
+            existente = sb.table("produtos").select("id").ilike("nome", item["nome"]).execute()
+            if existente.data:
+                produto_id = existente.data[0]["id"]
+            else:
+                produto_id = sb.table("produtos").insert({"nome": item["nome"]}).execute().data[0]["id"]
+        elif not sb.table("produtos").select("id").eq("id", produto_id).execute().data:
+            raise HTTPException(status_code=422, detail=f"Produto do item '{item['nome']}' não encontrado.")
+
+        mover_saldo(sb, produto_id, entrada.quantidade)
+        registrar_movimento(
+            sb, usuario, produto_id, "entrada", entrada.quantidade,
+            nota_fiscal_id=nota_id, nota_item_id=item["id"], observacao=dados.observacao,
+        )
+        sb.table("notas_fiscais_itens").update({
+            "produto_id": produto_id,
+            "quantidade_recebida": float(item.get("quantidade_recebida") or 0) + entrada.quantidade,
+        }).eq("id", item["id"]).execute()
+
+    registrar_log(usuario, "entrada_mercadoria", "nota_fiscal", nota_id,
+                  f"Entrada de mercadoria da nota {nota.data[0]['numero']}/{nota.data[0]['serie']} ({len(dados.itens)} item(ns))")
+    atualizada = sb.table("notas_fiscais").select(SELECT_COM_JOIN).eq("id", nota_id).execute()
+    return _achatar(atualizada.data[0])
 
 
 # ==================== Importação de XML (NF-e) ====================

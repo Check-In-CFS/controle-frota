@@ -14,6 +14,7 @@ import {
 } from '../services/notasFiscais'
 import NotaFiscalModal from '../components/NotaFiscalModal'
 import NotaFiscalDetalheModal from '../components/NotaFiscalDetalheModal'
+import EntradaMercadoriaModal from '../components/EntradaMercadoriaModal'
 import { useAuth } from '../services/auth'
 import AcessoNegado from '../components/AcessoNegado'
 import { useDialogo } from '../components/DialogoProvider'
@@ -49,6 +50,7 @@ function NotasFiscaisGestao() {
     }
   }, [location.state])
   const [visualizando, setVisualizando] = useState(null)
+  const [darEntrada, setDarEntrada] = useState(null)
 
   useEffect(() => {
     // lista completa: usada no filtro (permite ver histórico de máquinas inativas/baixadas)
@@ -223,11 +225,20 @@ function NotasFiscaisGestao() {
         />
       )}
 
+      {darEntrada && (
+        <EntradaMercadoriaModal
+          nota={darEntrada}
+          onClose={() => setDarEntrada(null)}
+          onConcluido={(atualizada) => { setDarEntrada(null); setVisualizando(atualizada); carregar() }}
+        />
+      )}
+
       {visualizando && !modalAberto && (
         <NotaFiscalDetalheModal
           nota={visualizando}
           centrosDespesa={centrosDespesa}
           onClose={() => setVisualizando(null)}
+          onEntrada={isDiretor ? undefined : () => { setDarEntrada(visualizando); setVisualizando(null) }}
           onEditar={() => {
             setEditando(visualizando)
             setVisualizando(null)

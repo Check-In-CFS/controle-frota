@@ -45,7 +45,8 @@ class ConsultaFalsa:
             self.banco.atualizacoes.append((self.nome, self._payload))
         if self._op == "insert" and isinstance(self._payload, dict):
             tabela = self.banco.tabelas.setdefault(self.nome, [])
-            linha = {"id": len(tabela) + 1, "created_at": "2026-11-13T10:00:00Z", **self._payload}
+            padroes = {"produtos": {"estoque_atual": 0, "ativo": True, "unidade_medida": "un", "estoque_minimo": None}}.get(self.nome, {})
+            linha = {"id": len(tabela) + 1, "created_at": "2026-11-13T10:00:00Z", **padroes, **self._payload}
             tabela.append(linha)
             self.banco.inseridos.append((self.nome, linha))
             return Resposta([linha])
@@ -90,10 +91,30 @@ class BancoFalso:
         self.inseridos = []
         self.arquivos = {}
         self.buckets = {}
+        self.chamadas_rpc = []
         self.storage = StorageFalso(self)
 
     def table(self, nome):
         return ConsultaFalsa(self, nome)
+
+    def rpc(self, nome, params):
+        """Só `ajustar_estoque`: soma ao produto e recusa saldo negativo, como o banco real."""
+        banco = self
+
+        class Chamada:
+            def execute(self_):
+                assert nome == "ajustar_estoque"
+                produto = next((p for p in banco.tabelas.get("produtos", []) if p["id"] == params["p_produto_id"]), None)
+                if produto is None:
+                    raise Exception("produto_nao_encontrado")
+                novo = float(produto["estoque_atual"]) + float(params["p_delta"])
+                if novo < 0:
+                    raise Exception('new row for relation "produtos" violates check constraint "produtos_estoque_atual_check" (23514)')
+                produto["estoque_atual"] = novo
+                banco.chamadas_rpc.append((nome, dict(params)))
+                return Resposta(novo)
+
+        return Chamada()
 
 
 @pytest.fixture(autouse=True)

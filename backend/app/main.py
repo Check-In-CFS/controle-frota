@@ -12,6 +12,7 @@ from app.routers import (
     maquinas,
     fornecedores,
     manutencoes,
+    produtos,
     preventivas,
     abastecimentos,
     notas_fiscais,
@@ -79,6 +80,7 @@ app.include_router(manutencoes.router, dependencies=_protegido)
 app.include_router(preventivas.router, dependencies=_protegido)
 app.include_router(abastecimentos.router, dependencies=_protegido)
 app.include_router(notas_fiscais.router, dependencies=_protegido)
+app.include_router(produtos.router, dependencies=_protegido)
 app.include_router(checklist.router, dependencies=_protegido)
 app.include_router(dashboard.router, dependencies=_protegido)
 app.include_router(relatorios.router, dependencies=_protegido)

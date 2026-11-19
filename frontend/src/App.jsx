@@ -13,6 +13,7 @@ const Fornecedores = lazy(() => import('./pages/Fornecedores'))
 const Manutencoes = lazy(() => import('./pages/Manutencoes'))
 const Abastecimentos = lazy(() => import('./pages/Abastecimentos'))
 const NotasFiscais = lazy(() => import('./pages/NotasFiscais'))
+const Estoque = lazy(() => import('./pages/Estoque'))
 const Checklist = lazy(() => import('./pages/Checklist'))
 const Relatorios = lazy(() => import('./pages/Relatorios'))
 const Financeiro = lazy(() => import('./pages/Financeiro'))
@@ -43,6 +44,7 @@ export default function App() {
               <Route path="manutencoes" element={<Manutencoes />} />
               <Route path="abastecimentos" element={<Abastecimentos />} />
               <Route path="notas-fiscais" element={<NotasFiscais />} />
+              <Route path="estoque" element={<Estoque />} />
               <Route path="checklist" element={<Checklist />} />
               <Route path="relatorios" element={<Relatorios />} />
               <Route path="financeiro" element={<Financeiro />} />

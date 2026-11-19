@@ -5,6 +5,7 @@ import { api } from '../services/api'
 import { listarNotasFiscais, criarNotaFiscal, labelTipoNota } from '../services/notasFiscais'
 import NotaFiscalRapidaModal from '../components/NotaFiscalRapidaModal'
 import NotaFiscalDetalheModal from '../components/NotaFiscalDetalheModal'
+import EntradaMercadoriaModal from '../components/EntradaMercadoriaModal'
 import Carregando from '../components/Carregando'
 
 function formatarData(iso) {
@@ -26,6 +27,7 @@ export default function NotasFiscaisMecanico() {
   const [busca, setBusca] = useState('')
   const [lancando, setLancando] = useState(false)
   const [visualizando, setVisualizando] = useState(null)
+  const [darEntrada, setDarEntrada] = useState(null)
 
   useEffect(() => {
     listarMaquinas({ apenas_disponiveis: true }).then(setMaquinas).catch(() => {})
@@ -122,7 +124,20 @@ export default function NotasFiscaisMecanico() {
         />
       )}
 
-      <NotaFiscalDetalheModal nota={visualizando} centrosDespesa={[]} onClose={() => setVisualizando(null)} />
+      <NotaFiscalDetalheModal
+        nota={visualizando}
+        centrosDespesa={[]}
+        onClose={() => setVisualizando(null)}
+        onEntrada={() => { setDarEntrada(visualizando); setVisualizando(null) }}
+      />
+
+      {darEntrada && (
+        <EntradaMercadoriaModal
+          nota={darEntrada}
+          onClose={() => setDarEntrada(null)}
+          onConcluido={(atualizada) => { setDarEntrada(null); setVisualizando(atualizada); carregar() }}
+        />
+      )}
     </div>
   )
 }
