@@ -77,7 +77,6 @@ export default function LancarNota() {
       setAvisoFoto(r.aviso)
       const lidos = {
         ...(d?.numero ? { numero: d.numero } : {}),
-        ...(d?.serie ? { serie: d.serie } : {}),
         ...(d?.data_emissao ? { data_emissao: d.data_emissao } : {}),
         ...(d?.valor_total != null ? { valor_total: d.valor_total } : {}),
         ...(d?.tipo ? { tipo: d.tipo } : {}),
